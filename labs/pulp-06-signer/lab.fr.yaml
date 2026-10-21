@@ -1,0 +1,5 @@
+# Surcharge française du lab pulp-06-signer.
+title: "Signer une image, et prouver que la vérification refuse une image non signée"
+description: >-
+  Générer une paire de clés Cosign, signer une image hébergée par Pulp, la
+  vérifier, et prouver qu'une image non signée échoue à la même vérification.

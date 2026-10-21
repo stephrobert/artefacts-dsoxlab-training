@@ -1,0 +1,30 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. L'instance Pulp RESTE : elle
+# vient du premier lab.
+- name: Défaire le lab pulp-03-publier, côté dépôt
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: La distribution et le dépôt internes sont retirés
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          sudo -iu student pulp python distribution destroy --name interne 2>/dev/null || true
+          sudo -iu student pulp python repository destroy --name interne 2>/dev/null || true
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Le répertoire de construction est retiré
+      ansible.builtin.file:
+        path: /home/student/paquet-interne
+        state: absent
+
+- name: Défaire le lab pulp-03-publier, côté client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: L'environnement virtuel d'essai est retiré
+      ansible.builtin.file:
+        path: /tmp/essai-maison
+        state: absent

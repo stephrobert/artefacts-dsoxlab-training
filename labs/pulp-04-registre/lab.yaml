@@ -1,0 +1,40 @@
+# Lab pulp-04-registre.
+#
+# Le depot sert deja des paquets ; il doit maintenant servir des IMAGES. Le
+# geste a prouver n'est pas « un remote existe », mais « une image tiree
+# depuis client.lab vient du depot, et non de Docker Hub ».
+#
+# LE PIEGE DU LAB, et il vient de la page : fournir son propre settings.py
+# empeche l'image de generer les reglages de jeton par defaut. L'endpoint
+# /v2/ repond alors 500 avec `AttributeError: TOKEN_SERVER` au lieu de 401.
+# Un 500 ressemble a une panne ; c'est une configuration incomplete.
+id: pulp-04-registre
+title: "Serve container images, and prove they come from your registry"
+level: l1
+description: >-
+  Turn Pulp into an OCI registry with a pull-through cache, pull an image
+  from client.lab through it, and check the image really came from the
+  repository.
+skills:
+  - artefacts.depot.registry
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/registre-conteneurs/
+lab_type: lab
+estimated_time: 40m
+runtime:
+  targets:
+    # UNE SEULE target, les autres machines en `roles:` : dsoxlab injecte
+    # `lab_target` et `lab_<role>`. Deux targets ne creent pas de groupe pour
+    # la seconde, et le play qui la vise ne tourne jamais, sans erreur.
+    - name: depot
+      host: depot.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: client.lab
+  default: depot
+  type: vm
+validation:
+  functional: true
+  persistence_after_reboot: false

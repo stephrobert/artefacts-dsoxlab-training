@@ -1,0 +1,87 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. L'instance Pulp RESTE : elle
+# vient du premier lab. En revanche les réglages de jeton repartent, sans quoi
+# le premier test serait vert sans que l'apprenant ait rien fait.
+- name: Défaire le lab pulp-04-registre, côté dépôt
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Le remote et la distribution pull-through sont retirés
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          MDP=$(sudo -iu student sed -n 's/^password = "\(.*\)"$/\1/p' /home/student/.config/pulp/cli.toml | head -1)
+          for t in distributions remotes; do
+            for h in $(curl -s --max-time 20 -u "admin:${MDP}" "http://127.0.0.1:8080/pulp/api/v3/${t}/container/pull-through/" | jq -r '.results[]?.pulp_href // empty'); do
+              curl -s --max-time 20 -u "admin:${MDP}" -X DELETE "http://127.0.0.1:8080${h}" >/dev/null || true
+            done
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Les réglages de jeton repartent, CONTENT_ORIGIN reste
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          IP=$(ip -4 -o addr show scope global | awk '{print $4}' | cut -d/ -f1 | head -1)
+          printf 'CONTENT_ORIGIN="http://%s:8080"\n' "$IP" > /home/student/pulp/settings/settings.py
+          chown student:student /home/student/pulp/settings/settings.py
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: La paire de clés de jeton est retirée
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /home/student/pulp/settings/certs/token_private_key.pem
+        - /home/student/pulp/settings/certs/token_public_key.pem
+
+    - name: L'instance repart sans les réglages de jeton
+      # PAS `podman restart`. Mesuré le 2026-10-21, trois fois de suite : en
+      # rootless il rend 125 avec « pasta failed: Failed to bind port 8080
+      # (Address already in use) » et LAISSE LE CONTENEUR ÉTEINT, ce qui
+      # faisait échouer le lab suivant sans raison lisible. Le port n'est pas
+      # encore rendu quand podman le redemande : on l'attend.
+      ansible.builtin.shell:
+        cmd: |
+          podman stop pulp >/dev/null 2>&1 || true
+          for i in $(seq 1 30); do
+            ss -ltn 2>/dev/null | grep -q ':8080 ' || break
+            sleep 2
+          done
+          podman start pulp
+        executable: /bin/bash
+      become_user: student
+      changed_when: false
+      failed_when: false
+
+    - name: L'API répond avant de rendre la main
+      # Un nettoyage qui laisse l'instance en cours de démarrage fait échouer
+      # le setup du lab suivant.
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8080/pulp/api/v3/status/
+        status_code: 200
+      register: api_apres_nettoyage
+      until: api_apres_nettoyage.status == 200
+      retries: 30
+      delay: 10
+      failed_when: false
+
+- name: Défaire le lab pulp-04-registre, côté client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Les images tirées à travers le dépôt sont retirées
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          IP_DEPOT=$(getent hosts depot.lab | awk '{print $1}' | head -1)
+          for i in $(timeout 30 podman images --format '{{ "{{" }}.Repository{{ "}}" }}:{{ "{{" }}.Tag{{ "}}" }}' 2>/dev/null | grep "${IP_DEPOT:-10.10.20.11}" || true); do
+            timeout 30 podman rmi "$i" || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false

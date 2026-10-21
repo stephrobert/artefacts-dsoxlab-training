@@ -1,0 +1,7 @@
+# Surcharge française du lab pulp-04-registre. Elle ne porte QUE `title` et
+# `description`.
+title: "Servir des images de conteneurs, et prouver qu'elles viennent de chez vous"
+description: >-
+  Faire de Pulp un registre OCI avec un cache pull-through, tirer une image
+  depuis client.lab en passant par lui, et vérifier que l'image vient bien du
+  dépôt.

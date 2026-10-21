@@ -1,0 +1,6 @@
+# Surcharge française du lab pulp-03-publier. Elle ne porte QUE `title` et
+# `description`.
+title: "Publier son propre paquet, et l'installer depuis une autre machine"
+description: >-
+  Construire un paquet, le téléverser dans Pulp, le publier et le distribuer,
+  puis l'installer depuis client.lab, où il n'existe nulle part ailleurs.

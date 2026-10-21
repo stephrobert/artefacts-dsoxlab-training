@@ -1,0 +1,66 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# CE QUE LE SETUP DONNE. L'instance Pulp en registre (labs 1 et 4), cosign et
+# podman côté client, et une image déjà poussée dans un dépôt du registre :
+# ce lab enseigne la SIGNATURE, pas la mise en place du registre.
+#
+# CE QUE LE SETUP NE FAIT PAS. Ni paire de clés, ni signature, ni
+# vérification : ce sont les gestes que les tests cherchent.
+- name: Préparer le dépôt
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: De quoi interroger l'API
+      ansible.builtin.apt:
+        name: [curl, jq]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: L'instance Pulp est en marche
+      ansible.builtin.command:
+        cmd: sudo -iu student podman ps --format {{ '{{' }}.Names{{ '}}' }}
+      register: conteneurs
+      changed_when: false
+      failed_when: false
+
+    - name: Le prérequis est nommé s'il manque
+      ansible.builtin.fail:
+        msg: >-
+          L'instance Pulp n'est pas en service. Ce lab suppose
+          pulp-01-installer et pulp-04-registre terminés.
+      when: "'pulp' not in (conteneurs.stdout | default(''))"
+
+- name: Outils du poste client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: podman et les outils de signature
+      ansible.builtin.apt:
+        name: [podman, curl, jq, golang-github-containers-common]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: cosign, installé depuis sa release officielle
+      # Le paquet n'existe pas dans Debian 13 : on pose le binaire publié par
+      # le projet Sigstore, à une version FIGÉE. Un `latest` ici
+      # contredirait ce que le site enseigne.
+      ansible.builtin.get_url:
+        url: https://github.com/sigstore/cosign/releases/download/v2.4.1/cosign-linux-amd64
+        dest: /usr/local/bin/cosign
+        mode: "0755"
+      register: pose_cosign
+      retries: 2
+      delay: 5
+      until: pose_cosign is succeeded
+      failed_when: false
+
+    - name: Aucune clé ni image d'un essai précédent
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /home/student/cosign.key
+        - /home/student/cosign.pub

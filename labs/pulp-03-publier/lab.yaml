@@ -1,0 +1,41 @@
+# Lab pulp-03-publier.
+#
+# Le pendant du lab precedent : apres avoir CONSOMME des paquets publics par
+# le depot, on y PUBLIE les siens. C'est le geste qui fait d'un proxy un
+# veritable depot d'entreprise.
+#
+# LE TEST QUI COMPTE. Le paquet publie n'existe nulle part ailleurs : son nom
+# porte un suffixe propre au lab. L'installation depuis client.lab ne peut
+# donc reussir QUE par le depot. Un test qui se contenterait d'un paquet
+# public serait vert meme si le depot ne servait rien.
+id: pulp-03-publier
+title: "Publish your own package, and install it from another machine"
+level: l1
+description: >-
+  Build a package, upload it to Pulp, publish and distribute it, then install
+  it from client.lab, where it exists nowhere else.
+skills:
+  - artefacts.depot.publish
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/publier-consommer/
+lab_type: lab
+estimated_time: 35m
+runtime:
+  type: vm
+  targets:
+    # UNE SEULE target, et les autres machines en `roles:`. C'est la
+    # convention du catalogue frere, et elle n'est pas decorative : dsoxlab
+    # injecte un groupe Ansible `lab_target` pour la target, et `lab_<role>`
+    # pour chaque role. Declarer deux targets ne cree PAS de groupe pour la
+    # seconde, et le play qui la vise ne tourne jamais - sans erreur.
+    - name: depot
+      host: depot.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: client.lab
+  default: depot
+validation:
+  functional: true
+  persistence_after_reboot: false

@@ -1,0 +1,35 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. L'instance Pulp RESTE : elle
+# vient du premier lab. Le compte et son rôle partent, sans quoi les tests
+# seraient verts sans travail.
+- name: Défaire le lab pulp-05-securiser
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Le compte limité est retiré
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          MDP=$(sudo -iu student sed -n 's/^password = "\(.*\)"$/\1/p' /home/student/.config/pulp/cli.toml | head -1)
+          for h in $(curl -s --max-time 20 -u "admin:${MDP}" "http://127.0.0.1:8080/pulp/api/v3/users/?username=publieur" | jq -r '.results[]?.pulp_href // empty'); do
+            curl -s --max-time 20 -u "admin:${MDP}" -X DELETE "http://127.0.0.1:8080${h}" >/dev/null || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Le fichier de mot de passe est retiré
+      ansible.builtin.file:
+        path: /home/student/.publieur-motdepasse
+        state: absent
+
+    - name: Les dépôts d'essai laissés par une validation interrompue partent
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          for n in $(sudo -iu student pulp --format json file repository list 2>/dev/null | jq -r '.[]?.name // empty' | grep '^essai-' || true); do
+            sudo -iu student pulp file repository destroy --name "$n" >/dev/null 2>&1 || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false

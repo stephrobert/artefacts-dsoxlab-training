@@ -1,0 +1,36 @@
+# Lab pulp-05-securiser.
+#
+# Un depot qui sert tout le monde avec le compte admin ne protege rien. Le
+# geste a prouver n'est pas « un compte existe », mais « un role CIBLE lui
+# ouvre une porte et une seule ».
+#
+# POURQUOI LE LAB A ETE REECRIT. Sa premiere version demandait un compte en
+# lecture seule. Mesure le 2026-10-21 : un compte Pulp NEUF, sans aucun role,
+# lit deja le catalogue et se voit refuser l'ecriture. Le test etait donc
+# vert sans que l'apprenant ait accorde quoi que ce soit, et il ne prouvait
+# pas le geste enseigne. La version actuelle exige un role qui AJOUTE un
+# droit, et verifie qu'il n'en ajoute pas d'autre.
+id: pulp-05-securiser
+title: "Grant a targeted role, and prove it opens one door only"
+level: l2
+description: >-
+  Create a limited account on Pulp, grant it the right to create file
+  repositories, and prove it can do exactly that and nothing more.
+skills:
+  - artefacts.depot.rbac
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/securiser/
+lab_type: lab
+estimated_time: 30m
+runtime:
+  targets:
+    - name: depot
+      host: depot.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+  default: depot
+  type: vm
+validation:
+  functional: true
+  persistence_after_reboot: false

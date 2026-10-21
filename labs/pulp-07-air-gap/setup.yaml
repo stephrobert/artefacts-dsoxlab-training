@@ -1,0 +1,56 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# CE QUE LE SETUP DONNE. L'instance Pulp en service, et de quoi couper puis
+# rétablir une sortie réseau.
+#
+# CE QUE LE SETUP NE FAIT PAS. Il ne coupe rien et ne synchronise rien : la
+# mise en cache préalable et la coupure sont les gestes de l'apprenant.
+- name: Préparer le dépôt
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: De quoi couper la sortie et interroger l'API
+      ansible.builtin.apt:
+        name: [iptables, curl, jq]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: L'instance Pulp est en marche
+      ansible.builtin.command:
+        cmd: sudo -iu student podman ps --format {{ '{{' }}.Names{{ '}}' }}
+      register: conteneurs
+      changed_when: false
+      failed_when: false
+
+    - name: Le prérequis est nommé s'il manque
+      ansible.builtin.fail:
+        msg: >-
+          L'instance Pulp n'est pas en service. Ce lab suppose
+          pulp-01-installer terminé.
+      when: "'pulp' not in (conteneurs.stdout | default(''))"
+
+    - name: Aucune règle de coupure ne survit d'un essai précédent
+      # Une validation interrompue au mauvais moment laisserait le dépôt
+      # incapable de synchroniser quoi que ce soit, et le lab suivant
+      # échouerait sans raison lisible.
+      ansible.builtin.shell:
+        cmd: |
+          while iptables -D OUTPUT -p tcp --dport 443 -j REJECT 2>/dev/null; do :; done
+          while iptables -D OUTPUT -p tcp --dport 80 -j REJECT 2>/dev/null; do :; done
+          exit 0
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+- name: Outils du poste client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi installer un paquet
+      ansible.builtin.apt:
+        name: [python3-venv, python3-pip, curl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600

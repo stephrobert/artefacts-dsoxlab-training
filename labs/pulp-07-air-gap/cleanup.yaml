@@ -1,0 +1,63 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. L'instance Pulp RESTE : elle
+# vient du premier lab. Ce qui part est ce que CE lab fait naître, sans quoi
+# les tests seraient verts sans travail : le dépôt hors ligne, sa
+# distribution, et surtout la COUPURE RÉSEAU.
+#
+# L'ORDRE COMPTE. La sortie réseau se rétablit en premier : un nettoyage
+# interrompu après la suppression du dépôt mais avant le rétablissement
+# laisserait la machine incapable de synchroniser quoi que ce soit, et le
+# lab suivant échouerait sans raison lisible.
+- name: Défaire le lab pulp-07-air-gap
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: La sortie réseau est rétablie, quoi qu'il arrive ensuite
+      # Les règles sont retirées en boucle : rien ne garantit qu'une seule
+      # ait été posée, et `iptables -D` n'en enlève qu'une par appel.
+      ansible.builtin.shell:
+        cmd: |
+          while iptables -D OUTPUT -p tcp --dport 443 -j REJECT 2>/dev/null; do :; done
+          while iptables -D OUTPUT -p tcp --dport 80 -j REJECT 2>/dev/null; do :; done
+          exit 0
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: La trace de la coupure est retirée
+      ansible.builtin.file:
+        path: /home/student/.coupure-active
+        state: absent
+
+    - name: La distribution et le dépôt hors ligne partent
+      ansible.builtin.shell:
+        cmd: |
+          sudo -iu student pulp python distribution destroy --name hors-ligne >/dev/null 2>&1 || true
+          sudo -iu student pulp python repository destroy --name hors-ligne >/dev/null 2>&1 || true
+          sudo -iu student pulp python remote destroy --name hors-ligne >/dev/null 2>&1 || true
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: La sortie est bien rouverte
+      # Un nettoyage qui ne vérifie pas son propre effet laisse passer
+      # exactement la panne qu'il devait éviter.
+      ansible.builtin.uri:
+        url: https://pypi.org/simple/
+        method: HEAD
+        status_code: [200, 301, 302]
+        timeout: 20
+      register: sortie
+      retries: 3
+      delay: 5
+      until: sortie is succeeded
+      failed_when: false
+
+- name: Défaire côté client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: L'environnement d'essai est retiré
+      ansible.builtin.file:
+        path: /tmp/essai-airgap
+        state: absent

@@ -1,0 +1,41 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. L'instance Pulp RESTE.
+- name: Défaire le lab pulp-06-signer, côté client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Les clés et la clé étrangère de test sont retirées
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /home/student/cosign.key
+        - /home/student/cosign.pub
+        - /tmp/cle-etrangere
+
+    - name: Les images poussées sous `interne` sont retirées du poste
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          for i in $(timeout 30 podman images --format '{{ "{{" }}.Repository{{ "}}" }}:{{ "{{" }}.Tag{{ "}}" }}' 2>/dev/null | grep '/interne/' || true); do
+            timeout 30 podman rmi "$i" || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+- name: Défaire le lab pulp-06-signer, côté dépôt
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Les dépôts poussés sous `interne` et leurs signatures sont retirés
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          MDP=$(sudo -iu student sed -n 's/^password = "\(.*\)"$/\1/p' /home/student/.config/pulp/cli.toml | head -1)
+          for h in $(curl -s --max-time 20 -u "admin:${MDP}" "http://127.0.0.1:8080/pulp/api/v3/distributions/container/container/?limit=100" | jq -r '.results[]? | select(.base_path | startswith("interne")) | .pulp_href'); do
+            curl -s --max-time 20 -u "admin:${MDP}" -X DELETE "http://127.0.0.1:8080${h}" >/dev/null || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false

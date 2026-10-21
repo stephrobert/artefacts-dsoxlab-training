@@ -1,0 +1,7 @@
+# Surcharge française du lab pulp-02-proxy. Elle ne porte QUE `title` et
+# `description`.
+title: "Proxyfier PyPI, et prouver que le cache sert quand la source tombe"
+description: >-
+  Créer un remote PyPI, synchroniser un paquet, le distribuer, l'installer
+  depuis client.lab, puis prouver que le dépôt sert encore une fois l'accès à
+  PyPI coupé.

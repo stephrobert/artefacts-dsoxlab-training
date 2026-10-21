@@ -1,0 +1,46 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : remet la machine dans l'état
+# que setup.yaml avait posé, pour que le lab se rejoue à l'identique.
+#
+# Ce qui part : le conteneur, le répertoire de travail, la configuration de la
+# CLI et le linger du compte. Une instance qui survivrait ferait passer les
+# tests sans que l'apprenant ait rien fait.
+#
+# Ce qui RESTE : podman et l'image Pulp, posés par le setup. Les retirer
+# ferait retélécharger 700 Mo à chaque rejeu sans rien prouver de plus.
+- name: Défaire le lab pulp-01-installer
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Le conteneur est arrêté puis retiré
+      # `stop` puis `rm`, jamais `rm -f` : on laisse le service fermer ses
+      # connexions à sa base.
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          sudo -iu student podman stop pulp 2>/dev/null || true
+          sleep 3
+          sudo -iu student podman rm pulp 2>/dev/null || true
+      args:
+        executable: /bin/bash
+      changed_when: false
+
+    - name: Le service utilisateur de redémarrage est désactivé
+      ansible.builtin.shell:
+        cmd: sudo -iu student systemctl --user disable --now podman-restart.service
+      changed_when: false
+      failed_when: false
+
+    - name: Le compte student ne garde plus de session persistante
+      ansible.builtin.shell:
+        cmd: loginctl disable-linger student
+      changed_when: false
+      failed_when: false
+
+    - name: Le répertoire de travail et la configuration de la CLI sont retirés
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /home/student/pulp
+        - /home/student/.config/pulp

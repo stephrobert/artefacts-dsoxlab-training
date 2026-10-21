@@ -1,0 +1,45 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# CE QUE LE SETUP DONNE. L'instance Pulp en service (lab 1).
+#
+# CE QUE LE SETUP NE FAIT PAS. Ni compte, ni rôle, ni attribution : ce sont
+# les gestes que les tests cherchent.
+- name: Préparer le lab pulp-05-securiser
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: De quoi interroger l'API
+      ansible.builtin.apt:
+        name:
+          - curl
+          - jq
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: L'instance Pulp du lab 1 est en marche
+      ansible.builtin.command:
+        cmd: sudo -iu student podman ps --format {{ '{{' }}.Names{{ '}}' }}
+      register: conteneurs
+      changed_when: false
+      failed_when: false
+
+    - name: Le prérequis est nommé s'il manque
+      ansible.builtin.fail:
+        msg: >-
+          L'instance Pulp n'est pas en service. Ce lab suppose
+          pulp-01-installer terminé : lance-le d'abord.
+      when: "'pulp' not in (conteneurs.stdout | default(''))"
+
+    - name: Aucun compte limité d'un essai précédent
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          MDP=$(sudo -iu student sed -n 's/^password = "\(.*\)"$/\1/p' /home/student/.config/pulp/cli.toml | head -1)
+          for h in $(curl -s --max-time 20 -u "admin:${MDP}" "http://127.0.0.1:8080/pulp/api/v3/users/?username=lecteur" | jq -r '.results[]?.pulp_href // empty'); do
+            curl -s --max-time 20 -u "admin:${MDP}" -X DELETE "http://127.0.0.1:8080${h}" >/dev/null || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false

@@ -1,0 +1,169 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# CE QUE LE SETUP DONNE. L'instance Pulp en service, un dépôt `interne` à
+# sauvegarder, le répertoire d'atterrissage des imports inscriptible par
+# `student`, un répertoire d'accueil sur le client, et de quoi copier un
+# fichier d'une machine à l'autre.
+#
+# CE QUE LE SETUP NE FAIT PAS. Il n'autorise aucun chemin d'export ou
+# d'import, n'exporte rien, ne sort aucun fichier de la machine et ne crée
+# pas le dépôt `restaure`. Ce sont les gestes de l'apprenant, et ils sont
+# tous notés.
+#
+# POURQUOI IL RETIRE LES RÉGLAGES. Le premier mur du lab est le refus
+# « is not an allowed export path ». Un lab rejoué sur une instance où le
+# réglage survit d'un passage précédent n'enseigne plus ce mur : il le fait
+# disparaître.
+#
+# L'ORDRE DES PLAYS COMPTE. Le client passe en premier parce que le dépôt a
+# besoin de son adresse, que seuls les facts donnent de façon fiable.
+
+- name: Accueil côté client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi recevoir la sauvegarde et installer un paquet
+      ansible.builtin.apt:
+        name: [python3-venv, python3-pip, curl, tar]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Le répertoire où la sauvegarde doit arriver
+      ansible.builtin.file:
+        path: /home/student/sauvegardes
+        state: directory
+        owner: student
+        group: student
+        mode: "0755"
+
+- name: Préparer le dépôt
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: De quoi interroger l'API, archiver et copier vers l'autre machine
+      ansible.builtin.apt:
+        name: [curl, jq, tar, openssh-client]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: L'instance Pulp est en marche
+      ansible.builtin.command:
+        cmd: sudo -iu student podman ps --format {{ '{{' }}.Names{{ '}}' }}
+      register: conteneurs
+      changed_when: false
+      failed_when: false
+
+    - name: Le prérequis est nommé s'il manque
+      ansible.builtin.fail:
+        msg: >-
+          L'instance Pulp n'est pas en service. Ce lab suppose
+          pulp-01-installer terminé, et pulp-03-publier pour le dépôt
+          `interne`.
+      when: "'pulp' not in (conteneurs.stdout | default(''))"
+
+    - name: Le nom du client pointe vers son adresse sur le réseau du lab
+      # DÉFAUT MESURÉ LE 2026-10-21. Le `/etc/hosts` du dépôt portait
+      # `192.168.122.30 client.lab`, adresse d'un provisionnement antérieur,
+      # alors que le client n'existe qu'en 10.10.20.12. Un `scp` vers
+      # `client.lab` échouait sur « Connection refused », et le geste central
+      # du lab devenait impossible pour une raison qui n'a rien à voir avec
+      # les sauvegardes.
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '\sclient\.lab(\s|$)'
+        line: "{{ hostvars[groups['lab_client'][0]]['ansible_default_ipv4']['address'] }} client.lab"
+        state: present
+
+    - name: Aucun chemin d'export ou d'import n'est autorisé au départ
+      ansible.builtin.lineinfile:
+        path: /home/student/pulp/settings/settings.py
+        regexp: "^ALLOWED_(EXPORT|IMPORT)_PATHS"
+        state: absent
+      register: reglages
+
+    - name: Le répertoire d'atterrissage des imports, inscriptible par student
+      # Le volume appartient à un UID mappé : `student` ne peut pas y créer de
+      # répertoire sans entrer dans l'espace de noms du conteneur. C'est de
+      # l'intendance, pas le sujet du lab, donc le setup s'en charge.
+      ansible.builtin.command:
+        cmd: >-
+          sudo -iu student podman unshare
+          install -d -m 0777 /home/student/pulp/pulp_storage/imports
+      changed_when: false
+
+    - name: Une clé pour copier la sauvegarde vers le client
+      community.crypto.openssh_keypair:
+        path: /home/student/.ssh/id_ed25519
+        type: ed25519
+        owner: student
+        group: student
+        mode: "0600"
+      register: cle_student
+
+    - name: scp vers le client ne pose pas de question d'empreinte
+      # Pas de `known_hosts` prérempli : le module aurait demandé la clé du
+      # client, et un `lookup('pipe', 'ssh-keyscan …')` s'exécute sur le
+      # CONTRÔLEUR, pas sur le dépôt. Mesuré le 2026-10-21 : la tâche
+      # échouait pour cette seule raison. Une entrée de configuration SSH
+      # fait le même travail, localement.
+      ansible.builtin.blockinfile:
+        path: /home/student/.ssh/config
+        create: true
+        owner: student
+        group: student
+        mode: "0600"
+        marker: "# {mark} pulp-08-sauvegarder"
+        block: |
+          Host client.lab
+            StrictHostKeyChecking accept-new
+            BatchMode yes
+
+    - name: Pulp relit sa configuration si elle a changé
+      # Les réglages ne sont lus qu'au démarrage. Sans ce redémarrage, un
+      # réglage retiré resterait actif et le premier mur du lab n'existerait
+      # pas.
+      #
+      # PAS `podman restart`. Mesuré le 2026-10-21, trois fois de suite :
+      # en rootless, il rend 125 avec « pasta failed: Failed to bind port
+      # 8080 (Address already in use) » et LAISSE LE CONTENEUR ÉTEINT. Le
+      # port n'est pas encore rendu quand podman le redemande. On arrête, on
+      # attend que le port soit libre, puis on démarre.
+      ansible.builtin.shell:
+        cmd: |
+          podman stop pulp >/dev/null 2>&1 || true
+          for i in $(seq 1 30); do
+            ss -ltn 2>/dev/null | grep -q ':8080 ' || break
+            sleep 2
+          done
+          podman start pulp
+        executable: /bin/bash
+      become_user: student
+      when: reglages.changed
+      changed_when: true
+
+    - name: L'API répond de nouveau
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8080/pulp/api/v3/status/
+        status_code: 200
+      register: api
+      until: api.status == 200
+      retries: 30
+      delay: 10
+      when: reglages.changed
+
+- name: Autoriser la clé du dépôt sur le client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: La clé publique de student sur le dépôt est acceptée
+      # Sans elle, « sortir la sauvegarde de la machine » demanderait un mot
+      # de passe que personne n'a. Le geste noté est le déplacement du
+      # fichier, pas la mise en place de SSH.
+      ansible.posix.authorized_key:
+        user: student
+        key: "{{ hostvars[groups['lab_target'][0]]['cle_student']['public_key'] }}"
+        state: present
+      when: hostvars[groups['lab_target'][0]]['cle_student'] is defined

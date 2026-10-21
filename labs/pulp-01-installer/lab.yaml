@@ -1,0 +1,35 @@
+# Lab pulp-01-installer.
+#
+# Le premier geste de la formation : mettre un dépôt d'artefacts en service et
+# prouver qu'il répond. Ce que la validation cherche n'est pas « un conteneur
+# tourne », mais « l'API répond, la CLI lui parle, et l'URL publique annoncée
+# est celle par laquelle on le joint réellement ».
+#
+# CONTENT_ORIGIN est le piège du lab, et il vient de la page : une instance
+# qui démarre avec une URL publique fausse fonctionne en apparence, puis sert
+# aux clients des liens de téléchargement cassés. Le test l'attrape en
+# comparant ce que Pulp ANNONCE à ce par quoi on l'atteint.
+id: pulp-01-installer
+title: "Put Pulp into service, and prove the API answers"
+level: l1
+description: >-
+  Install Pulp in a container on depot.lab, set the admin password, configure
+  the CLI and check that the instance advertises the right public URL.
+skills:
+  - artefacts.depot.deploy
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/installer/
+lab_type: lab
+estimated_time: 35m
+runtime:
+  type: vm
+  targets:
+    - name: depot
+      host: depot.lab
+  default: depot
+validation:
+  functional: true
+  # Le service doit revenir après un redémarrage de la machine : un dépôt
+  # d'artefacts qui ne remonte pas tout seul arrête la CI au premier reboot.
+  persistence_after_reboot: true

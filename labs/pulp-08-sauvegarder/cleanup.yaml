@@ -1,0 +1,69 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`. L'instance Pulp RESTE : elle
+# vient du premier lab, comme le dépôt `interne` vient du troisième. Ce qui
+# part est ce que CE lab fait naître, sans quoi les tests seraient verts
+# sans travail : le dépôt restauré, ses publications, l'exporteur,
+# l'importeur, les fichiers d'export et la sauvegarde partie sur le client.
+- name: Défaire le lab pulp-08-sauvegarder
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: La distribution et le dépôt restaurés partent
+      ansible.builtin.shell:
+        cmd: |
+          sudo -iu student pulp python distribution destroy --name restaure >/dev/null 2>&1 || true
+          sudo -iu student pulp python repository destroy --name restaure >/dev/null 2>&1 || true
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Les exporteurs et importeurs du lab partent
+      # Un exporteur garde la trace de ses exports : le laisser rendrait le
+      # premier test vert sans qu'aucun export neuf ait été produit.
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          for n in $(sudo -iu student pulp --format json exporter pulp list 2>/dev/null | jq -r '.[]?.name // empty'); do
+            sudo -iu student pulp exporter pulp destroy --name "$n" >/dev/null 2>&1 || true
+          done
+          for n in $(sudo -iu student pulp --format json importer pulp list 2>/dev/null | jq -r '.[]?.name // empty'); do
+            sudo -iu student pulp importer pulp destroy --name "$n" >/dev/null 2>&1 || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Les fichiers d'export et le répertoire d'atterrissage sont vidés
+      # Les deux répertoires appartiennent à l'UID mappé du conteneur : il
+      # faut son espace de noms pour y toucher.
+      ansible.builtin.shell:
+        cmd: |
+          sudo -iu student podman unshare find /home/student/pulp/pulp_storage/exports -type f -delete 2>/dev/null || true
+          sudo -iu student podman unshare find /home/student/pulp/pulp_storage/imports -type f -delete 2>/dev/null || true
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Les deux réglages de chemin autorisé sont retirés
+      ansible.builtin.lineinfile:
+        path: /home/student/pulp/settings/settings.py
+        regexp: "^ALLOWED_(EXPORT|IMPORT)_PATHS"
+        state: absent
+
+- name: Défaire côté client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: La sauvegarde partie sur le client est retirée
+      # C'est le test central du lab : si une sauvegarde d'un passage
+      # précédent restait ici, il serait vert sans travail.
+      ansible.builtin.shell:
+        cmd: find /home/student/sauvegardes -type f -delete 2>/dev/null || true
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: L'environnement d'essai est retiré
+      ansible.builtin.file:
+        path: /tmp/essai-restaure
+        state: absent

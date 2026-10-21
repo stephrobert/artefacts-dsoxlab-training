@@ -1,0 +1,36 @@
+# Lab pulp-07-air-gap.
+#
+# Le geste qui justifie un depot interne dans un reseau ferme : servir sans
+# Internet. Ce que la validation cherche n'est pas « une configuration
+# existe », mais « le client est servi ALORS QUE la sortie du depot est
+# coupee ».
+#
+# DIFFERENCE AVEC LE LAB 2. Le lab 2 coupe PyPI et verifie qu'un paquet DEJA
+# mis en cache ressort. Ici on va plus loin : le depot ne doit plus dependre
+# d'aucune source, et le transfert hors ligne des contenus est le sujet.
+id: pulp-07-air-gap
+title: "Serve with no Internet, and prove the cut is real"
+level: l2
+description: >-
+  Cut the repository's outbound access, serve a client anyway, and prove the
+  isolation is real rather than assumed.
+skills:
+  - artefacts.depot.airgap
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/air-gap-tls/
+lab_type: lab
+estimated_time: 35m
+runtime:
+  targets:
+    - name: depot
+      host: depot.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: client.lab
+  default: depot
+  type: vm
+validation:
+  functional: true
+  persistence_after_reboot: false

@@ -1,0 +1,64 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# CE QUE LE SETUP DONNE. L'instance Pulp du lab 1, et podman côté client pour
+# tirer une image.
+#
+# CE QUE LE SETUP NE FAIT PAS. Il ne touche pas aux réglages de jeton, ne crée
+# ni remote pull-through ni distribution : ce sont les gestes que les tests
+# cherchent.
+- name: Préparer le dépôt
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: De quoi générer une paire de clés et interroger l'API
+      ansible.builtin.apt:
+        name:
+          - openssl
+          - curl
+          - jq
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: L'instance Pulp du lab 1 est en marche
+      ansible.builtin.command:
+        cmd: sudo -iu student podman ps --format {{ '{{' }}.Names{{ '}}' }}
+      register: conteneurs
+      changed_when: false
+      failed_when: false
+
+    - name: Le prérequis est nommé s'il manque
+      ansible.builtin.fail:
+        msg: >-
+          L'instance Pulp n'est pas en service. Ce lab suppose
+          pulp-01-installer terminé : lance-le d'abord.
+      when: "'pulp' not in (conteneurs.stdout | default(''))"
+
+    - name: Aucun remote ni distribution de conteneurs d'un essai précédent
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          MDP=$(sudo -iu student sed -n 's/^password = "\(.*\)"$/\1/p' /home/student/.config/pulp/cli.toml | head -1)
+          for t in distributions remotes; do
+            for h in $(curl -s -u "admin:${MDP}" "http://127.0.0.1:8080/pulp/api/v3/${t}/container/pull-through/?name=dockerhub" | jq -r '.results[]?.pulp_href // empty'); do
+              curl -s -u "admin:${MDP}" -X DELETE "http://127.0.0.1:8080${h}" >/dev/null || true
+            done
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+- name: Outils du poste client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: podman, pour tirer une image à travers le dépôt
+      ansible.builtin.apt:
+        name:
+          - podman
+          - curl
+          - jq
+        state: present
+        update_cache: true
+        cache_valid_time: 3600

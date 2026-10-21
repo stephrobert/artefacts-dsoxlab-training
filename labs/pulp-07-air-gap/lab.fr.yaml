@@ -1,0 +1,5 @@
+# Surcharge française du lab pulp-07-air-gap.
+title: "Servir sans Internet, et prouver que la coupure est réelle"
+description: >-
+  Couper la sortie du dépôt, servir un client malgré tout, et prouver que
+  l'isolement est réel et non supposé.

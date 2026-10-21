@@ -1,0 +1,38 @@
+# Surcharge française du catalogue. Elle ne porte QUE `repo.title`,
+# `repo.description`, et les `title` / `description` des sections, appariés
+# par `id` et non par position.
+#
+# La langue par défaut de l'outil est l'anglais : `meta.yml` porte donc
+# l'anglais, et ce fichier le français. Sans lui, une session anglaise lit les
+# titres de sections tels qu'ils sont écrits dans `meta.yml`.
+
+repo:
+  title: "Dépôts d'artefacts : héberger, sécuriser, signer et servir ce dont vos déploiements dépendent"
+  description: |
+    Les labs de la formation « Dépôts d'artefacts ». Le niveau 1 met une
+    instance Pulp en service et prouve qu'elle sert : l'installer, proxyfier
+    un dépôt public et mesurer le cache, publier son propre paquet et le
+    consommer depuis un autre hôte. Le niveau 2 en fait un service que l'on
+    confie à une équipe : accès par rôles, signature Cosign qu'une image
+    modifiée doit faire échouer, fonctionnement hors ligne derrière un
+    certificat auto-signé, et sauvegarde restaurée sur une instance vide.
+    Nexus vient en option, et seulement pour ce qu'il fait différemment.
+
+sections:
+  - id: niveau-1
+    title: "Niveau 1 : mettre un dépôt en service"
+    description: >-
+      Installer Pulp, proxyfier un dépôt public et mesurer le cache, publier
+      son propre paquet et le consommer depuis un autre hôte.
+
+  - id: niveau-2
+    title: "Niveau 2 : en faire un service de confiance"
+    description: >-
+      Contrôler les accès, signer les images et faire échouer la vérification
+      d'une image modifiée, servir hors ligne, restaurer une sauvegarde.
+
+  - id: nexus
+    title: "Option Nexus"
+    description: >-
+      Ce que Nexus fait différemment de Pulp : dépôt proxy multi-format et
+      registre Docker hébergé.

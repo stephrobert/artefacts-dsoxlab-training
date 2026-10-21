@@ -1,0 +1,43 @@
+# Lab pulp-02-proxy.
+#
+# Le geste qui justifie à lui seul un dépôt d'artefacts : ne plus dépendre de
+# PyPI pour chaque build. Ce que la validation cherche n'est pas « un remote
+# existe », mais « un client d'une AUTRE machine installe un paquet par le
+# dépôt, et y arrive encore quand l'accès à PyPI est coupé ».
+#
+# LA MESURE QUI COMPTE. Un proxy qui n'a jamais rien mis en cache fonctionne
+# tant qu'Internet répond : il se contente de relayer. La seule preuve d'un
+# cache est de lui retirer sa source et de constater qu'il sert quand même.
+# Le test coupe donc l'accès sortant vers PyPI sur le dépôt, puis réinstalle.
+id: pulp-02-proxy
+title: "Proxy PyPI, and prove the cache serves when the source goes down"
+level: l1
+description: >-
+  Create a PyPI remote, sync a package, distribute it, install it from
+  client.lab, then prove the repository still serves once access to PyPI is
+  cut.
+skills:
+  - artefacts.depot.proxy
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/publier-consommer/
+lab_type: lab
+estimated_time: 40m
+runtime:
+  type: vm
+  targets:
+    # UNE SEULE target, et les autres machines en `roles:`. C'est la
+    # convention du catalogue frere, et elle n'est pas decorative : dsoxlab
+    # injecte un groupe Ansible `lab_target` pour la target, et `lab_<role>`
+    # pour chaque role. Declarer deux targets ne cree PAS de groupe pour la
+    # seconde, et le play qui la vise ne tourne jamais - sans erreur.
+    - name: depot
+      host: depot.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: client.lab
+  default: depot
+validation:
+  functional: true
+  persistence_after_reboot: false

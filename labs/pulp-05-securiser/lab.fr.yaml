@@ -1,0 +1,5 @@
+# Surcharge française du lab pulp-05-securiser.
+title: "Accorder un rôle ciblé, et prouver qu'il n'ouvre qu'une porte"
+description: >-
+  Créer un compte limité sur Pulp, lui accorder le droit de créer des dépôts
+  de fichiers, et prouver qu'il peut faire exactement cela et rien de plus.

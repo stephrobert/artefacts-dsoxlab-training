@@ -1,0 +1,70 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# CE QUE LE SETUP DONNE. L'instance Pulp en service (lab 1), de quoi
+# construire un paquet Python côté dépôt, et de quoi l'installer côté client.
+#
+# CE QUE LE SETUP NE FAIT PAS. Il ne construit ni ne publie rien : le paquet,
+# son téléversement, le dépôt qui l'accueille et la distribution qui l'expose
+# sont les quatre gestes que les tests cherchent.
+- name: Outils de construction, côté dépôt
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: De quoi construire une distribution Python
+      ansible.builtin.apt:
+        name:
+          - python3-build
+          - python3-setuptools
+          - python3-wheel
+          - curl
+          - jq
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: L'instance Pulp du lab 1 est en marche
+      ansible.builtin.command:
+        cmd: sudo -iu student podman ps --format {{ '{{' }}.Names{{ '}}' }}
+      register: conteneurs
+      changed_when: false
+      failed_when: false
+
+    - name: Le prérequis est nommé s'il manque
+      ansible.builtin.fail:
+        msg: >-
+          L'instance Pulp n'est pas en service. Ce lab suppose
+          pulp-01-installer terminé : lance-le d'abord.
+      when: "'pulp' not in (conteneurs.stdout | default(''))"
+
+    - name: Aucun dépôt ni distribution d'un essai précédent
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          sudo -iu student pulp python distribution destroy --name interne 2>/dev/null || true
+          sudo -iu student pulp python repository destroy --name interne 2>/dev/null || true
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Le répertoire de travail du paquet est retiré
+      # Module dédié plutôt qu'un `rm` récursif : Ansible sait le faire, et
+      # un `rm -rf` dans un shell est un geste qu'on ne confie pas à une
+      # variable mal remplie.
+      ansible.builtin.file:
+        path: /home/student/paquet-interne
+        state: absent
+
+- name: Outils du poste client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi créer un environnement virtuel et installer
+      ansible.builtin.apt:
+        name:
+          - python3-venv
+          - python3-pip
+          - curl
+        state: present
+        update_cache: true
+        cache_valid_time: 3600

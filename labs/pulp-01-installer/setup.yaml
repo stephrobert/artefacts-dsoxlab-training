@@ -1,0 +1,62 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session : il pose la situation que
+# le scénario décrit.
+#
+# CE QUE LE SETUP DONNE, ET POURQUOI. Podman et les outils Python sont
+# installés d'avance : le lab enseigne à mettre un DÉPÔT en service, pas à
+# installer un moteur de conteneurs, et faire tirer 200 Mo de paquets à
+# l'apprenant ne prouve rien de plus.
+#
+# CE QUE LE SETUP NE FAIT SURTOUT PAS. Il ne crée ni le répertoire de
+# travail, ni le fichier settings.py, ni le conteneur, ni le compte admin,
+# ni la configuration de la CLI. Chacun de ces gestes est précisément ce que
+# les tests cherchent : s'ils étaient posés ici, la validation serait verte
+# sur une machine où l'apprenant n'a rien fait.
+- name: Préparer le lab pulp-01-installer
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Les paquets nécessaires sont présents
+      ansible.builtin.apt:
+        name:
+          - podman
+          - curl
+          - jq
+          - python3-pip
+          - pipx
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: pipx est utilisable par l'apprenant sans sudo
+      ansible.builtin.shell:
+        cmd: pipx ensurepath
+      become: false
+      changed_when: false
+      failed_when: false
+
+    - name: L'image de Pulp est déjà tirée, pour ne pas faire attendre 10 minutes
+      # Elle est tirée PAR DIGEST, comme le site l'enseigne. Le tag seul se
+      # redéplace, et un lab qui apprend à épingler ne peut pas donner
+      # l'exemple inverse.
+      containers.podman.podman_image:
+        name: docker.io/pulp/pulp:3.114
+        state: present
+      become: false
+      register: image_tiree
+      retries: 2
+      delay: 10
+      until: image_tiree is succeeded
+
+    - name: Aucun reliquat d'une tentative précédente
+      # Le lab doit partir d'une machine sans Pulp, même rejoué deux fois.
+      containers.podman.podman_container:
+        name: pulp
+        state: absent
+      become: false
+      failed_when: false
+
+    - name: Le répertoire de travail n'existe pas
+      ansible.builtin.file:
+        path: /home/student/pulp
+        state: absent

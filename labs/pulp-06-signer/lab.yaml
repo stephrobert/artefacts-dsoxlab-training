@@ -1,0 +1,35 @@
+# Lab pulp-06-signer.
+#
+# Signer une image est facile ; prouver que la signature SERT l'est moins.
+# Le geste a prouver n'est donc pas « une signature existe », mais « la
+# verification ACCEPTE l'image signee et REFUSE une image qui ne l'est pas ».
+#
+# LES DEUX MOITIES COMPTENT. Une commande `cosign verify` qui reussit ne
+# prouve rien si elle reussirait aussi sur n'importe quoi. C'est le REFUS qui
+# donne sa valeur a l'acceptation.
+id: pulp-06-signer
+title: "Sign an image, and prove verification refuses an unsigned one"
+level: l2
+description: >-
+  Generate a Cosign key pair, sign an image hosted by Pulp, verify it, and
+  prove that an unsigned image fails the same verification.
+skills:
+  - artefacts.supply.sign
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/signer-artefacts/
+lab_type: lab
+estimated_time: 35m
+runtime:
+  targets:
+    - name: depot
+      host: depot.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: client.lab
+  default: depot
+  type: vm
+validation:
+  functional: true
+  persistence_after_reboot: false

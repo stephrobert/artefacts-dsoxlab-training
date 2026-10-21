@@ -1,0 +1,34 @@
+# Lab pulp-08-sauvegarder.
+#
+# LE GESTE QUI COMPTE : une sauvegarde ne vaut que par sa RESTAURATION. Ce
+# lab ne demande donc pas « avez-vous lancé un export », mais « un client
+# est-il servi par un dépôt reconstitué depuis cet export ».
+#
+# ET LA MOITIÉ QUE TOUT LE MONDE OUBLIE : un export resté sur la machine
+# sauvegardée n'est pas une sauvegarde. Un test exige qu'il soit AILLEURS.
+id: pulp-08-sauvegarder
+title: "Back up a repository, and prove the restore serves"
+level: l2
+description: >-
+  Export a repository, move the backup off the machine, import it into an
+  empty repository and serve a client from what was restored.
+skills:
+  - artefacts.depot.sauvegarde
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/sauvegarde/
+lab_type: lab
+estimated_time: 40m
+runtime:
+  targets:
+    - name: depot
+      host: depot.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: client.lab
+  default: depot
+  type: vm
+validation:
+  functional: true
+  persistence_after_reboot: false

@@ -1,0 +1,45 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset` : retire ce que l'apprenant a
+# créé dans Pulp, pour que le lab se rejoue à l'identique.
+#
+# L'instance Pulp elle-même RESTE : elle vient du lab précédent, et la
+# réinstaller à chaque rejeu ferait perdre dix minutes sans rien prouver.
+- name: Défaire le lab pulp-02-proxy, côté dépôt
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: La distribution, le dépôt et le remote sont retirés
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          sudo -iu student pulp python distribution destroy --name pypi 2>/dev/null || true
+          sudo -iu student pulp python repository destroy --name pypi-cache 2>/dev/null || true
+          sudo -iu student pulp python remote destroy --name pypi-proxy 2>/dev/null || true
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Aucune règle de coupure ne survit à une validation interrompue
+      # Le test du cache coupe la sortie HTTPS du dépôt et la rétablit dans
+      # un `finally`. Si le processus a été tué entre les deux, la règle
+      # resterait et le dépôt ne pourrait plus rien synchroniser.
+      ansible.builtin.shell:
+        cmd: |
+          while iptables -D OUTPUT -p tcp --dport 443 -j REJECT 2>/dev/null; do :; done
+          while iptables -D OUTPUT -p tcp --dport 443 -m string --string 'pypi.org' --algo bm -j REJECT 2>/dev/null; do :; done
+          exit 0
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+- name: Défaire le lab pulp-02-proxy, côté client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Les environnements virtuels d'essai sont retirés
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/essai-pip
+        - /tmp/essai-cache

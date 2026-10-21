@@ -1,0 +1,5 @@
+# Surcharge française du lab pulp-08-sauvegarder.
+title: "Sauvegarder un dépôt, et prouver que la restauration sert"
+description: >-
+  Exporter un dépôt, sortir la sauvegarde de la machine, l'importer dans un
+  dépôt vide et servir un client avec ce qui a été restauré.

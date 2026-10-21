@@ -1,0 +1,97 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/stephrobert/dsoxlab/main/schemas/meta.schema.json
+#
+# Catalogue artefacts-dsoxlab-training, décrit par le contrat v1 de dsoxlab.
+#
+# Les labs de la formation « Dépôts d'artefacts » du blog. Pulp est
+# l'implémentation de référence, Nexus l'option : un lab Nexus ne refait pas
+# un lab Pulp, il prouve ce que Nexus fait différemment.
+#
+# POURQUOI DES MACHINES VIRTUELLES. Un dépôt d'artefacts se prouve sur des
+# hôtes séparés, pas dans un conteneur : il faut un serveur qui héberge le
+# dépôt et un client qui le consomme, un vrai certificat TLS présenté sur le
+# réseau, et une coupure de réseau qui laisse le client servi en air-gap. Un
+# `pip install` qui réussit depuis la même machine ne prouve aucune de ces
+# trois choses.
+#
+# UN LAB ENTRE DANS CETTE LISTE LE JOUR OÙ IL EST ÉCRIT ET JOUÉ, PAS AVANT :
+# `validate-structure` refuse un lab déclaré dont le `lab.yaml` n'existe pas.
+# Les sections ci-dessous sont donc vides tant que leur premier lab n'est pas
+# validé.
+#
+# L'ORDRE DES HÔTES EST CONTRACTUEL : l'adresse IP d'une machine dérive de sa
+# position dans la liste (depot = .11, client = .12 si la base est .10).
+# Ajouter un hôte AU MILIEU déplacerait les adresses des suivants.
+#
+# `repo.id` sert de clé pour l'état local de ce catalogue : le changer
+# déplace ces emplacements.
+schema_version: 1
+
+repo:
+  id: artefacts-dsoxlab-training
+  category: artefacts-dsoxlab-training
+  title: "Artifact repositories: host, secure, sign and serve the packages and images your deployments depend on"
+  blog_url: "https://www.stephane-robert.info/docs/developper/artefacts/"
+  description: |
+    Labs for the "Artifact repositories" course. Level one puts a Pulp
+    instance into service and proves it serves: install it, proxy a public
+    repository and measure the pull-through cache, publish your own package
+    and consume it from another host. Level two turns it into a service you
+    can hand to a team: role-based access, Cosign signatures that a tampered
+    image must fail, offline operation behind a self-signed certificate, and
+    a backup restored onto an empty instance. Nexus comes as an option, and
+    only for what it does differently.
+
+infra:
+  provider: kvm
+  # `lab-artefacts` donne le pont `virbr-artefacts` : 13 caracteres au plus,
+  # le noyau en accepte 15 pour un pont et dsoxlab derive le nom du reseau.
+  network: lab-artefacts
+  # CIDR deja pris par les catalogues voisins : 10.10.20, 30, 50, 60, 70, 80,
+  # 90, 100 et 110. Releve le 2026-10-20 sur les meta.yml du poste.
+  cidr: 10.10.20.0/24
+  hosts:
+    # Pulp porte PostgreSQL, Redis, l'API et ses workers dans un seul
+    # conteneur. Mesure du 2026-10-20 : avec 961 Mo et 1 vCPU, les migrations
+    # de la premiere mise en service ne terminent pas et le conteneur
+    # redemarre en boucle, sans message explicite.
+    - name: depot.lab
+      distro: debian13
+      role: depot
+      ram_mb: 4096
+      vcpu: 2
+    # Le client ne fait que consommer : pip, podman pull, curl.
+    - name: client.lab
+      distro: debian13
+      role: client
+      ram_mb: 1024
+      vcpu: 1
+
+sections:
+  - id: niveau-1
+    title: "Niveau 1 : mettre un dépôt en service"
+    description: >-
+      Installer Pulp, proxyfier un dépôt public et mesurer le cache, publier
+      son propre paquet et le consommer depuis un autre hôte.
+    labs:
+      - pulp-01-installer
+      - pulp-02-proxy
+      - pulp-03-publier
+      - pulp-04-registre
+
+  - id: niveau-2
+    title: "Niveau 2 : en faire un service de confiance"
+    description: >-
+      Contrôler les accès, signer les images et faire échouer la vérification
+      d'une image modifiée, servir hors ligne, restaurer une sauvegarde.
+    labs:
+      - pulp-05-securiser
+      - pulp-06-signer
+      - pulp-07-air-gap
+      - pulp-08-sauvegarder
+
+  - id: nexus
+    title: "Option Nexus"
+    description: >-
+      Ce que Nexus fait différemment de Pulp : dépôt proxy multi-format et
+      registre Docker hébergé.
+    labs: []
