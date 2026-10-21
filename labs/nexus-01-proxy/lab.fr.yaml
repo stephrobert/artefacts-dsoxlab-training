@@ -1,5 +1,5 @@
 # Surcharge française du lab nexus-01-proxy.
-title: "Proxyfier un index public avec Nexus, et refermer la porte ouverte"
+title: "Proxyfier un index public avec Nexus, et prouver l'ordre du group"
 description: >-
   Mettre Nexus en service, proxyfier PyPI, prouver que le cache s'est rempli,
-  et couper l'accès anonyme qu'il ouvre par défaut.
+  et prouver que le dépôt group sert ses membres dans l'ordre déclaré.

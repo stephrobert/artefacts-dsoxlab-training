@@ -13,7 +13,8 @@ portes que l'installation laisse ouvertes.
   proxy y est un type de dépôt plutôt qu'un assemblage.
 - Vérifier qu'un cache s'est réellement rempli, et pas seulement qu'il est
   configuré.
-- Couper l'accès anonyme, que Nexus laisse actif par défaut.
+- Ordonner les membres d'un dépôt `group`, et prouver que le privé passe
+  avant le proxy public.
 - Installer un paquet à travers le dépôt en s'authentifiant.
 
 ## Ce que ce lab suppose
