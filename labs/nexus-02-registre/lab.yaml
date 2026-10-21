@@ -1,0 +1,37 @@
+# Lab nexus-02-registre.
+#
+# CE QU'IL ENSEIGNE. Un registre d'images chez Nexus ne vit pas sur le port de
+# l'interface : il demande un CONNECTEUR sur un port dédié, et un REALM
+# d'authentification que l'installation ne laisse pas actif. Deux réglages
+# invisibles, qui font échouer `podman login` avec des messages qui ne les
+# nomment pas.
+#
+# DIFFÉRENCE AVEC pulp-04-registre. Chez Pulp, le registre partage le port de
+# l'API et l'authentification du reste. Chez Nexus, ce sont deux plans
+# distincts, et c'est tout le sujet.
+id: nexus-02-registre
+title: "Host a container registry on Nexus, port and realm included"
+level: l2
+description: >-
+  Create a hosted Docker repository on Nexus, expose its connector on a
+  dedicated port, activate the token realm, and push an image to it.
+skills:
+  - artefacts.nexus.registre
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/nexus/registry-docker/
+lab_type: lab
+estimated_time: 35m
+runtime:
+  targets:
+    - name: nexus
+      host: nexus.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: client.lab
+  default: nexus
+  type: vm
+validation:
+  functional: true
+  persistence_after_reboot: false

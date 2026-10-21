@@ -1,0 +1,5 @@
+# Surcharge française du lab nexus-02-registre.
+title: "Héberger un registre d'images sur Nexus, port et realm compris"
+description: >-
+  Créer un dépôt Docker hébergé sur Nexus, exposer son connecteur sur un port
+  dédié, activer le realm de jetons, et y pousser une image.

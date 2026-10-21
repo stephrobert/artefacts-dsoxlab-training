@@ -58,13 +58,19 @@
       failed_when: false
 
     - name: L'instance tourne
+      # DEUX PORTS PUBLIÉS, et le second ne sert pas à ce lab. Un registre
+      # Docker Nexus exige un CONNECTEUR sur un port dédié, distinct de celui
+      # de l'interface : c'est le sujet de `nexus-02-registre`. Un port qu'on
+      # oublie de publier au lancement ne s'ajoute pas après coup, il faut
+      # recréer le conteneur. Publier 8082 ici évite ce piège sans rien
+      # changer pour l'apprenant de ce lab.
       ansible.builtin.shell:
         cmd: |
           if podman container exists nexus; then
             podman start nexus >/dev/null 2>&1 || true
             exit 0
           fi
-          podman run -d --name nexus -p 8081:8081 \
+          podman run -d --name nexus -p 8081:8081 -p 8082:8082 \
             -e INSTALL4J_ADD_VM_PARAMS="-Xms1024m -Xmx1024m -XX:MaxDirectMemorySize=1024m" \
             -v nexus-data:/nexus-data \
             docker.io/sonatype/nexus3:3.97.1

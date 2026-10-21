@@ -1,0 +1,108 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# CE QUE LE SETUP DONNE. L'instance Nexus du lab précédent, podman sur le
+# client, et une image locale à pousser (tirer `alpine` depuis Docker Hub au
+# milieu du lab mangerait son temps et dépend du réseau).
+#
+# CE QUE LE SETUP NE FAIT PAS. Il ne crée pas le dépôt Docker, n'ouvre pas de
+# connecteur, n'active pas le realm et ne déclare rien dans la configuration
+# de podman. Ce sont les cinq gestes notés.
+- name: Vérifier l'instance Nexus
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Le paquet acl, curl et jq
+      # UN NOM DE TÂCHE NE COMMENCE PAS PAR UN BACKTICK. YAML le réserve
+      # comme indicateur, et le playbook entier est refusé sur « found
+      # character that cannot start any token », sans rapport visible avec la
+      # ligne. Mesuré le 2026-10-21.
+      #
+      # Sans le paquet `acl`, toute tâche en `become_user: student` échoue sur
+      # « Failed to set permissions on the temporary files ».
+      ansible.builtin.apt:
+        name: [podman, curl, jq, python3, acl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: L'instance Nexus répond
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8081/service/rest/v1/status
+        status_code: 200
+      register: api
+      until: api.status == 200
+      retries: 12
+      delay: 10
+      failed_when: false
+
+    - name: Le prérequis est nommé s'il manque
+      ansible.builtin.fail:
+        msg: >-
+          Nexus ne répond pas sur le port 8081. Ce lab reprend l'instance de
+          nexus-01-proxy : terminez-le d'abord.
+      when: api.status is not defined or api.status != 200
+
+    - name: Le mot de passe de l'instance est disponible
+      ansible.builtin.stat:
+        path: /home/student/.nexus-motdepasse
+      register: fichier_mdp
+
+    - name: Le second prérequis est nommé s'il manque
+      ansible.builtin.fail:
+        msg: >-
+          /home/student/.nexus-motdepasse est absent. Il est écrit par
+          nexus-01-proxy, quand le mot de passe jetable de `admin` est changé.
+      when: not fichier_mdp.stat.exists
+
+    - name: Le port 8082 est bien publié par le conteneur
+      # Le connecteur du registre vivra là. Si le port n'est pas publié, le
+      # lab est infaisable, et l'apprenant chercherait longtemps : Nexus ne
+      # signale rien, de son point de vue le connecteur écoute.
+      ansible.builtin.command:
+        cmd: sudo -iu student podman port nexus
+      register: ports
+      changed_when: false
+
+    - name: Le troisième prérequis est nommé s'il manque
+      ansible.builtin.fail:
+        msg: >-
+          Le conteneur Nexus ne publie pas le port 8082. Rejouez
+          `dsoxlab clean nexus-01-proxy` puis `dsoxlab run nexus-01-proxy` :
+          son setup le publie, et un port oublié au lancement ne s'ajoute pas
+          après coup.
+      when: "'8082' not in (ports.stdout | default(''))"
+
+- name: Préparer le poste client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: Podman et de quoi pousser une image
+      ansible.builtin.apt:
+        name: [podman, curl, acl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Les conteneurs de student survivent à sa déconnexion
+      # Sans linger, podman avertit à chaque appel qu'aucune session systemd
+      # n'est disponible. Ce bruit noie les vrais messages d'erreur.
+      ansible.builtin.command:
+        cmd: loginctl enable-linger student
+      changed_when: false
+
+    - name: L'image à pousser est déjà présente, épinglée par digest
+      # Digest relevé le 2026-10-21 pour alpine 3.22.
+      ansible.builtin.command:
+        cmd: >-
+          sudo -iu student podman pull
+          docker.io/library/alpine:3.22
+      register: tirage
+      changed_when: "'Writing manifest' in (tirage.stdout | default(''))"
+
+    - name: Aucune déclaration de registre ne survit d'un essai précédent
+      # C'est l'un des gestes notés : la laisser en place rendrait le
+      # contrôle vert sans travail.
+      ansible.builtin.file:
+        path: /etc/containers/registries.conf.d/nexus-lab.conf
+        state: absent

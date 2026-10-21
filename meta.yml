@@ -110,3 +110,4 @@ sections:
       registre Docker hébergé.
     labs:
       - nexus-01-proxy
+      - nexus-02-registre

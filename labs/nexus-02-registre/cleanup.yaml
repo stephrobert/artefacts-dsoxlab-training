@@ -1,0 +1,75 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`.
+#
+# L'INSTANCE NEXUS RESTE. Elle vient de nexus-01-proxy, avec son EULA
+# acceptée, son mot de passe et ses trois dépôts PyPI : la détruire ici
+# obligerait à rejouer le lab précédent. Ne partent que les cinq gestes de
+# CE lab.
+#
+# LE REALM EST REMIS EN PLACE, et c'est le point auquel on ne pense pas :
+# `DockerToken` activé survit à la suppression du dépôt, et le contrôle
+# correspondant serait vert au prochain passage sans aucun travail.
+- name: Défaire le lab nexus-02-registre
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Le dépôt Docker et son connecteur partent
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          MDP=$(cat /home/student/.nexus-motdepasse 2>/dev/null)
+          [ -n "$MDP" ] || exit 0
+          curl -sS -u "admin:${MDP}" -X DELETE --max-time 30 \
+            http://127.0.0.1:8081/service/rest/v1/repositories/docker-interne >/dev/null || true
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Le realm des jetons Docker est désactivé
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          MDP=$(cat /home/student/.nexus-motdepasse 2>/dev/null)
+          [ -n "$MDP" ] || exit 0
+          curl -sS -u "admin:${MDP}" -X PUT --max-time 30 \
+            -H 'Content-Type: application/json' \
+            -d '["NexusAuthenticatingRealm"]' \
+            http://127.0.0.1:8081/service/rest/v1/security/realms/active >/dev/null || true
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+- name: Défaire côté client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: La déclaration du registre en clair est retirée
+      ansible.builtin.file:
+        path: /etc/containers/registries.conf.d/nexus-lab.conf
+        state: absent
+
+    - name: Les images du registre du lab sont retirées
+      # LES ACCOLADES DE PODMAN SE PROTÈGENT DE JINJA. Écrit tel quel,
+      # `{{.Repository}}` est lu comme une expression Ansible et rend
+      # « Syntax error in template: unexpected '.' », qui ne dit rien du
+      # format podman. Mesuré le 2026-10-21 : le nettoyage entier échouait
+      # sur cette seule ligne.
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          FORMAT='{{ '{{' }}.Repository{{ '}}' }}:{{ '{{' }}.Tag{{ '}}' }}'
+          for i in $(sudo -iu student podman images --format "$FORMAT" 2>/dev/null | grep ':8082/' || true); do
+            sudo -iu student podman rmi "$i" >/dev/null 2>&1 || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: La session authentifiée au registre est fermée
+      # Un `podman login` qui survit ferait réussir le push sans que
+      # l'apprenant ait rien configuré.
+      ansible.builtin.shell:
+        cmd: sudo -iu student podman logout --all
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
