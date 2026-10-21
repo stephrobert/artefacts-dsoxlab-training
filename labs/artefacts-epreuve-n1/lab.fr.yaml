@@ -1,0 +1,10 @@
+# Surcharge française de l'épreuve de niveau 1.
+title: "Épreuve de niveau 1 : le dépôt que personne ne documentait"
+description: |
+  Une instance Pulp en service, reprise telle quelle : les builds sortent
+  tous sur Internet, les paquets maison circulent par messagerie, et les
+  images viennent de Docker Hub en direct. Mettez les trois chaînes en place
+  et prouvez que chacune sert. Sept tâches notées, 100 points, 70 pour
+  réussir. Rien n'y est réexpliqué : les quatre labs du niveau l'ont
+  enseigné, celle-ci le mesure. Notée sur l'état réel de l'instance, depuis
+  un client qui n'est pas le dépôt.

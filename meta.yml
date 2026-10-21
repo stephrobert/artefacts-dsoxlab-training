@@ -91,6 +91,7 @@ sections:
       - pulp-02-proxy
       - pulp-03-publier
       - pulp-04-registre
+      - artefacts-epreuve-n1
 
   - id: niveau-2
     title: "Niveau 2 : en faire un service de confiance"

@@ -1,0 +1,47 @@
+# Épreuve de fin de niveau 1.
+#
+# `lab_type: challenge` et non `lab` : c'est ce qui autorise
+# `exam_passing_score`, et ce qui dit à l'apprenant que cette épreuve ÉVALUE.
+# Rien n'y est réexpliqué, et il n'y a donc PAS de section d'indices dans le
+# scénario : les quatre labs du niveau l'ont enseigné, celle-ci le mesure.
+#
+# CE QU'ELLE NE DÉTRUIT PAS. Elle n'efface aucun dépôt des labs : elle exige
+# des objets qui lui sont propres, tous préfixés `epreuve-`. Un apprenant qui
+# renomme ses dépôts du niveau pour les faire passer pour les siens serait
+# d'ailleurs noté sur le contenu, pas sur le nom.
+id: artefacts-epreuve-n1
+title: "Level 1 exam: the repository nobody documented"
+description: |
+  A Pulp instance in service, inherited as is: every build still reaches the
+  public internet, in-house packages travel by email, and images come straight
+  from Docker Hub. Put the three chains in place and prove each one serves.
+  Seven graded tasks, 100 points, 70 to pass. Nothing is explained a second
+  time: the level's four labs taught it, this exam measures it. Graded on the
+  real state of the instance, from a client that is not the repository.
+section: niveau-1
+level: niveau-1
+lab_type: challenge
+exam_passing_score: 70
+difficulty: advanced
+estimated_time: "1h"
+skills:
+  - artefacts.depot.proxy
+  - artefacts.depot.publier
+  - artefacts.depot.registre
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/
+certification_tags: []
+runtime:
+  targets:
+    - name: depot
+      host: depot.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: client.lab
+  default: depot
+  type: vm
+validation:
+  functional: true
+  persistence_after_reboot: false

@@ -1,0 +1,85 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir l'épreuve.
+#
+# CE QUE LE SETUP DONNE. L'instance Pulp en service, et de quoi construire un
+# paquet Python sur le dépôt comme au lab 3.
+#
+# CE QUE LE SETUP NE FAIT PAS. Rien de ce qui est noté : aucun dépôt, aucun
+# remote, aucune distribution, aucun paquet, aucune image. C'est une épreuve.
+#
+# CE QU'IL N'EFFACE PAS. Les dépôts des labs du niveau restent en place.
+# L'épreuve exige des objets qui lui sont propres, préfixés `epreuve-`, et ses
+# contrôles ne regardent qu'eux. Détruire le travail des labs pour mesurer
+# l'épreuve serait une punition, pas une évaluation.
+- name: Préparer l'épreuve sur le dépôt
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: De quoi construire un paquet et interroger l'API
+      ansible.builtin.apt:
+        name: [python3-build, python3-venv, python3-pip, curl, jq, acl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: L'instance Pulp est en marche
+      ansible.builtin.command:
+        cmd: sudo -iu student podman ps --format {{ '{{' }}.Names{{ '}}' }}
+      register: conteneurs
+      changed_when: false
+      failed_when: false
+
+    - name: Le prérequis est nommé s'il manque
+      ansible.builtin.fail:
+        msg: >-
+          L'instance Pulp n'est pas en service. Cette épreuve suppose les
+          quatre labs du niveau 1 terminés, dont pulp-01-installer.
+      when: "'pulp' not in (conteneurs.stdout | default(''))"
+
+    - name: L'API répond avant d'ouvrir l'épreuve
+      # Une épreuve chronométrée qui commence par une instance en cours de
+      # démarrage vole son temps à l'apprenant.
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8080/pulp/api/v3/status/
+        status_code: 200
+      register: api
+      until: api.status == 200
+      retries: 30
+      delay: 10
+
+    - name: Aucune sortie réseau ne reste coupée d'un lab précédent
+      # Le lab 7 coupe la sortie du dépôt. Une règle oubliée rendrait les deux
+      # premières tâches de l'épreuve impossibles, et l'apprenant chercherait
+      # la cause dans son propre travail.
+      ansible.builtin.shell:
+        cmd: |
+          while iptables -D OUTPUT -p tcp --dport 443 -j REJECT 2>/dev/null; do :; done
+          while iptables -D OUTPUT -p tcp --dport 80 -j REJECT 2>/dev/null; do :; done
+          exit 0
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Le répertoire de travail de l'épreuve
+      ansible.builtin.file:
+        path: /home/student/epreuve
+        state: directory
+        owner: student
+        group: student
+        mode: "0755"
+
+- name: Préparer le poste client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi installer un paquet et tirer une image
+      ansible.builtin.apt:
+        name: [python3-venv, python3-pip, podman, curl, acl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Les conteneurs de student survivent à sa déconnexion
+      ansible.builtin.command:
+        cmd: loginctl enable-linger student
+      changed_when: false

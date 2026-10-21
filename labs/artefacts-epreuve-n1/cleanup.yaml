@@ -1,0 +1,87 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`.
+#
+# NE PARTENT QUE LES OBJETS DE L'ÉPREUVE, tous préfixés `epreuve-`. Les dépôts
+# des quatre labs du niveau restent : ils sont le travail de l'apprenant, et
+# l'épreuve ne s'en sert pas.
+#
+# L'ORDRE COMPTE : une distribution qui pointe une publication, et une
+# publication qui pointe une version de dépôt, tiennent le dépôt. On retire du
+# plus exposé vers le plus profond, sans quoi Pulp refuse la suppression.
+- name: Défaire l'épreuve artefacts-epreuve-n1
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Les distributions de l'épreuve partent
+      ansible.builtin.shell:
+        cmd: |
+          for n in epreuve-cache epreuve-interne epreuve-images; do
+            sudo -iu student pulp python distribution destroy --name "$n" >/dev/null 2>&1 || true
+            sudo -iu student pulp container distribution destroy --name "$n" >/dev/null 2>&1 || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Les dépôts et remotes de l'épreuve partent
+      ansible.builtin.shell:
+        cmd: |
+          for n in epreuve-cache epreuve-interne epreuve-images; do
+            sudo -iu student pulp python repository destroy --name "$n" >/dev/null 2>&1 || true
+            sudo -iu student pulp python remote destroy --name "$n" >/dev/null 2>&1 || true
+            sudo -iu student pulp container repository destroy --name "$n" >/dev/null 2>&1 || true
+            sudo -iu student pulp container remote destroy --name "$n" >/dev/null 2>&1 || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Les objets pull-through de l'épreuve partent, par l'API
+      # LA CLI NE LES VOIT PAS. Un remote et une distribution pull-through
+      # vivent sur leurs propres endpoints ; `pulp container remote destroy`
+      # ne les atteint pas, et le nom reste pris. Mesuré le 2026-10-21 : la
+      # création suivante échouait sur « This field must be unique » pour un
+      # objet que la CLI déclarait absent.
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          MDP=$(sudo -iu student sed -n 's/^password = "\(.*\)"$/\1/p' /home/student/.config/pulp/cli.toml | head -1)
+          [ -n "$MDP" ] || exit 0
+          for genre in distributions remotes; do
+            for h in $(curl -s --max-time 20 -u "admin:${MDP}" \
+                "http://127.0.0.1:8080/pulp/api/v3/${genre}/container/pull-through/?name=epreuve-images" \
+                | jq -r '.results[]?.pulp_href // empty'); do
+              curl -s --max-time 30 -u "admin:${MDP}" -X DELETE "http://127.0.0.1:8080${h}" >/dev/null || true
+            done
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
+
+    - name: Le répertoire de travail de l'épreuve est vidé
+      ansible.builtin.file:
+        path: /home/student/epreuve
+        state: absent
+
+- name: Défaire côté client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: L'environnement d'essai est retiré
+      ansible.builtin.file:
+        path: /tmp/essai-epreuve
+        state: absent
+
+    - name: Les images tirées à travers le dépôt de l'épreuve partent
+      # Sans cela, le dernier contrôle serait vert sur une image déjà
+      # présente dans le cache local, sans que le dépôt serve.
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          FORMAT='{{ '{{' }}.Repository{{ '}}' }}:{{ '{{' }}.Tag{{ '}}' }}'
+          for i in $(sudo -iu student podman images --format "$FORMAT" 2>/dev/null | grep 'epreuve-images' || true); do
+            sudo -iu student podman rmi "$i" >/dev/null 2>&1 || true
+          done
+        executable: /bin/bash
+      changed_when: false
+      failed_when: false
