@@ -1,0 +1,36 @@
+# Lab nexus-01-proxy.
+#
+# CE QU'IL ENSEIGNE, ET QUE LE LAB 2 N'ENSEIGNE PAS. Le lab 2 fait la même
+# chose avec Pulp. Ici, trois différences de Nexus sont le sujet : un dépôt
+# proxy est un TYPE de dépôt créé à la demande, le compte `admin` arrive avec
+# un mot de passe jetable qu'il faut changer, et l'accès ANONYME est ouvert
+# par défaut, ce qui rend n'importe quel dépôt lisible par tout le réseau.
+#
+# POURQUOI UNE MACHINE À PART. Nexus 3 demande 2 703 Mo de heap Java par
+# défaut : il ne tient pas sur `depot.lab` à côté de Pulp.
+id: nexus-01-proxy
+title: "Proxy a public index with Nexus, and close the open door"
+level: l2
+description: >-
+  Put Nexus into service, proxy PyPI through it, prove the cache filled, and
+  close the anonymous access it opens by default.
+skills:
+  - artefacts.nexus.proxy
+distros:
+  - debian13
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/nexus/depot-proxy-cache/
+lab_type: lab
+estimated_time: 40m
+runtime:
+  targets:
+    - name: nexus
+      host: nexus.lab
+      label_en: "Debian 13"
+      label_fr: "Debian 13"
+      roles:
+        client: client.lab
+  default: nexus
+  type: vm
+validation:
+  functional: true
+  persistence_after_reboot: false

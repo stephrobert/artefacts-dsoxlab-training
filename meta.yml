@@ -65,6 +65,20 @@ infra:
       role: client
       ram_mb: 1024
       vcpu: 1
+    # Nexus, pour les deux labs de la section « Option Nexus ». Il a sa propre
+    # machine, et ce n'est pas du confort : Nexus 3 demande 2 703 Mo de heap
+    # Java par défaut, que les 4 Go de `depot.lab` ne peuvent pas lui donner
+    # en plus de Pulp. Partager la machine aurait imposé d'arrêter Pulp au
+    # setup de Nexus et de le redémarrer après, un couplage qui aurait fait
+    # échouer les labs Pulp sans raison lisible.
+    #
+    # AJOUTÉ EN FIN DE LISTE, le 2026-10-21, parce que l'ordre des hôtes est
+    # contractuel : cette machine prend .13 et aucune adresse ne bouge.
+    - name: nexus.lab
+      distro: debian13
+      role: nexus
+      ram_mb: 4096
+      vcpu: 2
 
 sections:
   - id: niveau-1
@@ -94,4 +108,5 @@ sections:
     description: >-
       Ce que Nexus fait différemment de Pulp : dépôt proxy multi-format et
       registre Docker hébergé.
-    labs: []
+    labs:
+      - nexus-01-proxy

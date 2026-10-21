@@ -1,0 +1,46 @@
+---
+# Joué par `dsoxlab clean` et `dsoxlab reset`.
+#
+# ICI, LE NETTOYAGE EST RADICAL, et c'est le seul cas du catalogue. Les trois
+# gestes notés de ce lab laissent leur trace DANS LE VOLUME de Nexus :
+# l'EULA acceptée, le mot de passe changé, les dépôts créés. Retirer les
+# dépôts un par un ne défait ni l'EULA ni le mot de passe, et il n'existe
+# aucune API pour revenir en arrière sur l'un ou l'autre.
+#
+# L'instance repart donc d'un volume neuf, ce qui régénère admin.password et
+# remet l'EULA à `accepted: false`. Rien d'autre ne vit dans ce volume : ce
+# lab est le premier de la section Nexus, et il ne partage son instance avec
+# aucun autre lab Pulp, qui vivent sur `depot.lab`.
+- name: Défaire le lab nexus-01-proxy
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: L'instance est arrêtée
+      ansible.builtin.command:
+        cmd: sudo -iu student podman stop nexus
+      changed_when: false
+      failed_when: false
+
+    - name: Le conteneur est retiré
+      # `podman stop` puis `podman rm`, jamais `rm -f` : la forme forcée tue
+      # un processus Java au milieu de ses écritures.
+      ansible.builtin.command:
+        cmd: sudo -iu student podman rm nexus
+      changed_when: false
+      failed_when: false
+
+    - name: Le volume de données repart à zéro
+      # C'est ce qui régénère le mot de passe jetable et remet l'EULA à false.
+      ansible.builtin.command:
+        cmd: sudo -iu student podman volume rm nexus-data
+      changed_when: false
+      failed_when: false
+
+- name: Défaire côté client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: L'environnement d'essai est retiré
+      ansible.builtin.file:
+        path: /tmp/essai-nexus
+        state: absent

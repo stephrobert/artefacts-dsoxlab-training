@@ -1,0 +1,95 @@
+---
+# Joué par `dsoxlab run` avant d'ouvrir la session.
+#
+# CE QUE LE SETUP DONNE. Podman, l'image Nexus déjà tirée (684 Mo : la laisser
+# à télécharger mangerait le quart du temps du lab), et l'instance EN MARCHE
+# avec son mot de passe jetable fraîchement généré.
+#
+# CE QUE LE SETUP NE FAIT PAS, et c'est délibéré : il n'accepte pas l'EULA, ne
+# change pas le mot de passe, ne crée aucun dépôt. Accepter une licence est un
+# acte juridique, pas une étape d'installation : c'est à l'apprenant de lire le
+# texte et de décider.
+#
+# POURQUOI UN HEAP RÉDUIT. Nexus 3 demande 2 703 Mo de heap plus autant de
+# mémoire directe par défaut, ce que les 4 Go de la machine ne peuvent pas
+# donner. Mesuré le 2026-10-21 avec 1 024 Mo : l'API répond en 35 s et
+# l'ensemble consomme 1,6 Go.
+- name: Mettre Nexus en marche
+  hosts: lab_target
+  become: true
+  tasks:
+    - name: Podman, de quoi interroger l'API, et `acl`
+      # POURQUOI `acl`. Sans lui, toute tâche en `become_user: student`
+      # échoue sur « Failed to set permissions on the temporary files Ansible
+      # needs to create when becoming an unprivileged user », parce que le
+      # repli d'Ansible appelle `chmod A+user:student:rx:allow`, une syntaxe
+      # que `chmod` refuse. Mesuré le 2026-10-21 : la machine de Pulp portait
+      # déjà `acl`, cette machine neuve non, et le même playbook passait sur
+      # l'une et pas sur l'autre.
+      ansible.builtin.apt:
+        name: [podman, curl, jq, python3, acl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Les conteneurs de student survivent à sa déconnexion
+      # Sans linger, systemd ferme la session de `student` et emporte le
+      # conteneur rootless avec elle.
+      ansible.builtin.command:
+        cmd: loginctl enable-linger student
+      changed_when: false
+
+    - name: L'image Nexus est présente, épinglée par digest
+      # Le tag dit la version pour le lecteur, le digest fixe ce qui est
+      # réellement tiré. Relevé le 2026-10-21 pour 3.97.1, sortie le
+      # 2026-10-20.
+      ansible.builtin.command:
+        cmd: >-
+          sudo -iu student podman pull
+          docker.io/sonatype/nexus3:3.97.1@sha256:7a8fefbead6836d2f9d56a4d319e837f52161ee4dba854204c6e5fa056eb17f0
+      register: tirage
+      changed_when: "'Writing manifest' in (tirage.stdout | default(''))"
+
+    - name: Le volume de données existe
+      ansible.builtin.command:
+        cmd: sudo -iu student podman volume create nexus-data
+      register: volume
+      changed_when: "'nexus-data' in (volume.stdout | default(''))"
+      failed_when: false
+
+    - name: L'instance tourne
+      ansible.builtin.shell:
+        cmd: |
+          if podman container exists nexus; then
+            podman start nexus >/dev/null 2>&1 || true
+            exit 0
+          fi
+          podman run -d --name nexus -p 8081:8081 \
+            -e INSTALL4J_ADD_VM_PARAMS="-Xms1024m -Xmx1024m -XX:MaxDirectMemorySize=1024m" \
+            -v nexus-data:/nexus-data \
+            docker.io/sonatype/nexus3:3.97.1
+        executable: /bin/bash
+      become_user: student
+      changed_when: true
+
+    - name: L'API répond avant de rendre la main
+      # Un lab ouvert pendant que Nexus démarre fait échouer le premier appel
+      # de l'apprenant, qui croit à une erreur de sa part.
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8081/service/rest/v1/status
+        status_code: 200
+      register: api
+      until: api.status == 200
+      retries: 30
+      delay: 10
+
+- name: Outils du poste client
+  hosts: lab_client
+  become: true
+  tasks:
+    - name: De quoi installer un paquet depuis Nexus
+      ansible.builtin.apt:
+        name: [python3-venv, python3-pip, curl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
