@@ -9,6 +9,35 @@ labs, a PATCH fixes a statement or a test without changing what a lab proves,
 and a MAJOR renames or removes labs, which breaks the progress already recorded
 by learners.
 
+## [Unreleased]
+
+### Added
+
+- **Reference solutions for eight of the eleven labs**, encrypted under
+  `solution/`: `pulp-01` through `pulp-08`. Each one is written from the
+  tests, which are the specification, and from the `setup.yaml`, which is the
+  starting state; each carries in its header what its lab proves and the trap
+  it is built around, because a solution that only works is half a solution.
+
+  **They have not been attested yet.** `scripts/verify-solutions.py` has never
+  played them: that needs the three machines and a dedicated campaign. Until
+  it has, treat them as reviewed drafts, not as proven answers.
+
+- Still missing: `nexus-01-proxy`, `nexus-02-registre` and
+  `artefacts-epreuve-n1`.
+
+### Known defects, found while writing the solutions
+
+- `pulp-05-securiser` cleans up an account named `lecteur` in its
+  `setup.yaml`, a leftover from the earlier version of the lab, while the
+  account it now asks for is `publieur`. The lab therefore does not reset
+  between two attempts, and a learner who granted too broad a role keeps it.
+
+- The third test of `pulp-02-proxy` reads `distributions[0]` without
+  filtering on the name, where `pulp-03`, `pulp-07` and `pulp-08` all filter.
+  Should another lab leave a distribution behind, that test aims at the wrong
+  one.
+
 ## [0.1.0] - 2026-10-23
 
 ### Added
