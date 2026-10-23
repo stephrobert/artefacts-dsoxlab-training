@@ -20,7 +20,7 @@ Environ 35 minutes.
 
 Sa première version faisait signer une image du **cache pull-through** du lab
 précédent. `cosign sign` échouait sur `UNAUTHORIZED: Insufficient
-permissions` — un message qui parle de droits alors que le problème est de
+permissions`, un message qui parle de droits alors que le problème est de
 **nature** : une signature Cosign est un **objet du registre**, poussé à côté
 de l'image, et un dépôt pull-through est en **lecture seule**.
 

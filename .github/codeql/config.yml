@@ -1,0 +1,28 @@
+# Configuration CodeQL du catalogue Depots d'artefacts.
+#
+# POURQUOI CE FICHIER EXISTE
+#
+# Le `ci.yml` de ce depot le REFERENCE. Sans lui, les deux jobs CodeQL
+# echouent sur « The configuration file .github/codeql/config.yml does not
+# exist », et le chemin est le piege : il vit sous `.github/codeql/` et non
+# `.github/codeql-config.yml`.
+#
+# CE FICHIER N'EXCLUT RIEN, ET C'EST MESURE
+#
+# Ce catalogue n'a PAS de repertoire `solution/` : ses onze labs ne
+# portent aucun corrige de reference, ce que `find` confirme. Il n'y a
+# donc aucun contenu chiffre a ecarter, et recopier l'exclusion
+# `solution/**` d'un catalogue frere serait une ligne qui ne protege
+# rien et laisse croire que des corriges existent.
+#
+# Aucune fixture non plus : `find labs -type d -name fixtures` rend zero,
+# les onze labs etant de runtime `vm`, ou l'etat de depart est pose par
+# un playbook.
+#
+# CE QUI RESTE ANALYSE
+#
+#   .github/workflows/        les workflows du catalogue lui-meme
+#   scripts/                  l'outillage de validation
+#   tests/                    les garde-fous du depot
+#   labs/**/challenge/tests/  les tests joues sur le poste de l'apprenant
+name: "Catalogue Depots d'artefacts"

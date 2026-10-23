@@ -80,7 +80,7 @@ def test_l_export_a_produit_une_archive(depot) -> None:
     r = depot.run(
         f"{STUDENT} find {EXPORTS} -maxdepth 1 -name '*.tar' -size +1k -printf '%p\\n'"
     )
-    archives = [l for l in r.stdout.splitlines() if l.strip()]
+    archives = [ligne for ligne in r.stdout.splitlines() if ligne.strip()]
     assert archives, message(
         en=(
             f"No non-empty .tar export in {EXPORTS}. Pulp refuses to export into a "

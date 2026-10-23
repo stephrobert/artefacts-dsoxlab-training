@@ -19,3 +19,10 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 .venv/
+
+# Secrets du formateur. `.vault-pass` chiffre les solutions, et
+# `solution-en-clair/` porte leur version lisible : une solution publiée en
+# clair donne les réponses aux apprenants. Seule la version chiffrée
+# de `solution/` est versionnée.
+.vault-pass
+solution-en-clair/
