@@ -15,7 +15,7 @@ description: >-
   Build a package, upload it to Pulp, publish and distribute it, then install
   it from client.lab, where it exists nowhere else.
 skills:
-  - artefacts.depot.publish
+  - artefacts.repository.publish
 distros:
   - debian13
 doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/publier-consommer/

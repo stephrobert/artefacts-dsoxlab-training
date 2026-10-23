@@ -6,9 +6,12 @@
 [project]
 name = "artefacts-dsoxlab-training"
 version = "0.1.0"
-description = "À remplir."
+description = "Labs des dépôts d'artefacts (Pulp, Nexus), joués par la CLI dsoxlab"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "pytest>=9.1.1",
+    "pyyaml>=6.0.3",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "labs"]
@@ -19,6 +22,12 @@ norecursedirs = ["challenge/work", ".git", ".venv"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+exclude = [
+    # Les solutions sont CHIFFRÉES : ruff ne peut pas les lire, et n'a rien à y
+    # dire. Le répertoire de travail de l'apprenant n'est pas du code du dépôt.
+    "solution",
+    "labs/*/challenge/work",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "S"]

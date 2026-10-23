@@ -16,7 +16,7 @@ description: >-
   from client.lab through it, and check the image really came from the
   repository.
 skills:
-  - artefacts.depot.registry
+  - artefacts.registry.serve
 distros:
   - debian13
 doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/registre-conteneurs/

@@ -30,6 +30,7 @@ paquet vient de chez vous.
 
 ## Un détail qui coûte dix minutes
 
-`pulp python content upload` exige **`--relative-path`**, le nom sous lequel
+`pulp python content create` (qui remplace `content upload`, dépréciée depuis
+pulp-cli 0.38.0) exige **`--relative-path`**, le nom sous lequel
 le fichier sera servi. Sans lui, la commande refuse, et le message ne le dit
 qu'en affichant son usage.

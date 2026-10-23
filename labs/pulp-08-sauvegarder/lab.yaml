@@ -13,7 +13,7 @@ description: >-
   Export a repository, move the backup off the machine, import it into an
   empty repository and serve a client from what was restored.
 skills:
-  - artefacts.depot.sauvegarde
+  - artefacts.repository.backup
 distros:
   - debian13
 doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/sauvegarde/

@@ -16,7 +16,7 @@ description: >-
   Install Pulp in a container on depot.lab, set the admin password, configure
   the CLI and check that the instance advertises the right public URL.
 skills:
-  - artefacts.depot.deploy
+  - artefacts.repository.deploy
 distros:
   - debian13
 doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/installer/

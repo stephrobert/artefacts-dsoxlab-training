@@ -37,6 +37,7 @@ proves the package came from you.
 ## Hints
 
 - `python3 -m build` produces a distribution in `dist/`.
-- `pulp python content upload --help` shows how to upload a file and add it
-  to a repository in one go.
+- `pulp python content create --help` shows how to upload a file and add it
+  to a repository in one go (`content upload` still exists but is deprecated
+  since pulp-cli 0.38.0).
 - A `python` repository accepts uploaded packages as well as synced ones.

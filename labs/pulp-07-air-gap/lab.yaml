@@ -15,7 +15,7 @@ description: >-
   Cut the repository's outbound access, serve a client anyway, and prove the
   isolation is real rather than assumed.
 skills:
-  - artefacts.depot.airgap
+  - artefacts.repository.airgap
 distros:
   - debian13
 doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/air-gap-tls/

@@ -19,19 +19,19 @@ repo:
     Nexus vient en option, et seulement pour ce qu'il fait différemment.
 
 sections:
-  - id: niveau-1
+  - id: artefacts-niveau-1
     title: "Niveau 1 : mettre un dépôt en service"
     description: >-
       Installer Pulp, proxyfier un dépôt public et mesurer le cache, publier
       son propre paquet et le consommer depuis un autre hôte.
 
-  - id: niveau-2
+  - id: artefacts-niveau-2
     title: "Niveau 2 : en faire un service de confiance"
     description: >-
       Contrôler les accès, signer les images et faire échouer la vérification
       d'une image modifiée, servir hors ligne, restaurer une sauvegarde.
 
-  - id: nexus
+  - id: artefacts-nexus
     title: "Option Nexus"
     description: >-
       Ce que Nexus fait différemment de Pulp : dépôt proxy multi-format et

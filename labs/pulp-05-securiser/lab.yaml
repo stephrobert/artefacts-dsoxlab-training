@@ -17,7 +17,7 @@ description: >-
   Create a limited account on Pulp, grant it the right to create file
   repositories, and prove it can do exactly that and nothing more.
 skills:
-  - artefacts.depot.rbac
+  - artefacts.repository.authorize
 distros:
   - debian13
 doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/securiser/

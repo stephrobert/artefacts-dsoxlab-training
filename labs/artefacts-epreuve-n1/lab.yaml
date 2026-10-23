@@ -18,19 +18,19 @@ description: |
   Seven graded tasks, 100 points, 70 to pass. Nothing is explained a second
   time: the level's four labs taught it, this exam measures it. Graded on the
   real state of the instance, from a client that is not the repository.
-section: niveau-1
-level: niveau-1
+section: artefacts-niveau-1
+level: artefacts-niveau-1
 lab_type: challenge
 exam_passing_score: 70
 difficulty: advanced
 estimated_time: "1h"
 skills:
-  - artefacts.depot.proxy
-  - artefacts.depot.publier
-  - artefacts.depot.registre
+  - artefacts.repository.proxy
+  - artefacts.repository.publish
+  - artefacts.registry.serve
 distros:
   - debian13
-doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/
+doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/registre-conteneurs/
 certification_tags: []
 runtime:
   targets:

@@ -37,7 +37,8 @@ réussit prouve que le paquet vient bien de chez vous.
 ## Indices
 
 - `python3 -m build` produit une distribution dans `dist/`.
-- `pulp python content upload --help` montre comment téléverser un fichier et
-  l'ajouter à un dépôt en une fois.
+- `pulp python content create --help` montre comment téléverser un fichier et
+  l'ajouter à un dépôt en une fois (`content upload` existe encore, mais elle
+  est dépréciée depuis pulp-cli 0.38.0).
 - Un dépôt `python` accepte aussi bien des paquets synchronisés que des
   paquets téléversés.

@@ -17,7 +17,7 @@ description: >-
   client.lab, then prove the repository still serves once access to PyPI is
   cut.
 skills:
-  - artefacts.depot.proxy
+  - artefacts.repository.proxy
 distros:
   - debian13
 doc_url: https://www.stephane-robert.info/docs/developper/artefacts/pulp/publier-consommer/

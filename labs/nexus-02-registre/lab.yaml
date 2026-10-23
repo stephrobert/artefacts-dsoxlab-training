@@ -16,7 +16,7 @@ description: >-
   Create a hosted Docker repository on Nexus, expose its connector on a
   dedicated port, activate the token realm, and push an image to it.
 skills:
-  - artefacts.nexus.registre
+  - artefacts.registry.serve
 distros:
   - debian13
 doc_url: https://www.stephane-robert.info/docs/developper/artefacts/nexus/registry-docker/
