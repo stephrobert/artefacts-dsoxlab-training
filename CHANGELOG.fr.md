@@ -9,6 +9,36 @@ un incrément MINEUR ajoute des labs, un CORRECTIF corrige un énoncé ou un tes
 sans changer ce qu'un lab prouve, et un incrément MAJEUR renomme ou retire des
 labs, ce qui casse la progression déjà enregistrée des apprenants.
 
+## [Non publié]
+
+### Ajouté
+
+- **Les corrigés de référence de huit des onze labs**, chiffrés sous
+  `solution/` : de `pulp-01` à `pulp-08`. Chacun est écrit depuis les tests,
+  qui sont la spécification, et depuis le `setup.yaml`, qui est l'état de
+  départ ; chacun porte en en-tête ce que son lab prouve et le piège autour
+  duquel il est bâti, parce qu'un corrigé qui se contente de marcher n'est un
+  corrigé qu'à moitié.
+
+  **Ils ne sont pas encore attestés.** `scripts/verify-solutions.py` ne les a
+  jamais joués : cela demande les trois machines et une campagne dédiée. D'ici
+  là, ce sont des brouillons relus, pas des réponses prouvées.
+
+- Restent à écrire : `nexus-01-proxy`, `nexus-02-registre` et
+  `artefacts-epreuve-n1`.
+
+### Défauts relevés en écrivant les corrigés
+
+- `pulp-05-securiser` nettoie dans son `setup.yaml` un compte nommé
+  `lecteur`, vestige de la version précédente du lab, alors que le compte
+  qu'il demande désormais s'appelle `publieur`. Le lab ne se remet donc pas à
+  zéro entre deux tentatives, et un apprenant qui a accordé un rôle trop
+  large le conserve.
+
+- Le troisième test de `pulp-02-proxy` lit `distributions[0]` sans filtrer
+  sur le nom, là où `pulp-03`, `pulp-07` et `pulp-08` filtrent tous. Si un
+  autre lab laisse une distribution derrière lui, ce test vise la mauvaise.
+
 ## [0.1.0] - 2026-10-23
 
 ### Ajouté
