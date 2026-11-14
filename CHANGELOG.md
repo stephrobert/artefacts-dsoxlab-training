@@ -11,6 +11,15 @@ by learners.
 
 ## [Unreleased]
 
+### Changed
+
+- **The README and the CONTRIBUTING link to the engine documentation instead
+  of copying it** (dsoxlab#201). The sections that described the `dsoxlab`
+  contract and the life of a lab now point to the dsoxlab docs, which stay
+  true when the engine changes. The advice to run `list-labs` before
+  `validate-structure` is gone: it has been wrong since dsoxlab 0.1.97, where
+  `validate-structure` reports on its own the labs it cannot load.
+
 ### Added
 
 - **Reference solutions for eight of the eleven labs**, encrypted under
