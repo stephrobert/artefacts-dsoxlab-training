@@ -130,38 +130,24 @@ git -C <this repo> pull        # the catalog
 
 ## How it works
 
-### The declarative contract (two levels)
+### The engine, documented where it lives
 
-This repository is **not the CLI**. An engine defect is fixed in
+This catalog is played by `dsoxlab`, which documents its own contract and
+commands. This README does not repeat them, so that it cannot drift when the
+engine changes (dsoxlab issue #201):
+
+- the contract: `meta.yml`, `lab.yaml`, `lab.<lang>.yaml`, the runtimes and
+  their fields: [contract](https://github.com/stephrobert/dsoxlab/blob/main/docs/contract-v1.md);
+- the commands and the life of a lab, from `run` to `check`:
+  [commands](https://github.com/stephrobert/dsoxlab/blob/main/docs/commands.md) and [playing a lab](https://github.com/stephrobert/dsoxlab/blob/main/docs/learner.md);
+- writing a lab, and what `validate-structure` checks:
+  [catalog author guide](https://github.com/stephrobert/dsoxlab/blob/main/docs/catalog-author.md).
+
+This repository is **not the CLI**: an engine defect is fixed in
 [dsoxlab](https://github.com/stephrobert/dsoxlab), or reported as an issue
-there. Here, everything driving the CLI is declarative:
-
-- **`meta.yml`** at the root declares the repository identity, the
-  **infrastructure** (provider, network `lab-artefacts`, `10.10.20.0/24` and
-  the three hosts) and the **order** of the sections shown by `list-labs`;
-- **`lab.yaml`** per lab declares its `skills`, `level`, `runtime`, `distros`,
-  `doc_url` and a `validation` block. A `lab.fr.yaml` overrides `title` and
-  `description` in French, and nothing else;
-- **`setup.yaml`** and **`cleanup.yaml`** lay down and undo the machine state;
-- **`challenge/tests/test_functional.py`** carries the proof.
-
-The Terraform and cloud-init templates are **packaged inside dsoxlab**, not
-here: this repository declares only its `infra:` block and its public key in
-`ssh/`.
-
-### The lab lifecycle
-
-```bash
-dsoxlab list-labs              # browse the catalog
-dsoxlab show      <id>         # metadata and status of one lab
-dsoxlab run       <id>         # lay down the initial state and open the session
-dsoxlab challenge <id>         # read the mission, no step-by-step
-dsoxlab hint      <id>         # reveal a hint (deducted from the score)
-dsoxlab check     <id>         # run the tests, compute and record the score
-dsoxlab submit    <id>         # for the exam: a verdict, not a bare score
-dsoxlab clean     <id>         # undo the lab, keep the machines
-dsoxlab progress               # per-section progress, average score
-```
+there. The Terraform and cloud-init templates are packaged inside dsoxlab, so
+this repository declares only its `infra:` block in [`meta.yml`](./meta.yml)
+and its public key in [`ssh/`](./ssh/).
 
 ### The validation model, and what is still missing here
 
