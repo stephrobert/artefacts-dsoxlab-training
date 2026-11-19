@@ -1,4 +1,4 @@
-# Servir des images de conteneurs, et prouver qu'elles viennent de chez vous
+# Challenge : Servir des images de conteneurs, et prouver qu'elles viennent de chez vous
 
 Les builds de l'équipe tirent leurs images de base depuis Docker Hub. Deux
 fois ce mois-ci, la limite de téléchargements a fait échouer la chaîne en
@@ -45,3 +45,9 @@ configuration incomplète. Il faut déclarer `TOKEN_SERVER`,
 - Le remote et la distribution pull-through se créent par l'**API REST** : la
   CLI ne les expose pas encore.
 - En HTTP, `podman` a besoin de `--tls-verify=false`.
+
+## Valider votre travail
+
+```bash
+dsoxlab check pulp-04-registre
+```

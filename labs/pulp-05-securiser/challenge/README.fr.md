@@ -1,4 +1,4 @@
-# Accorder un rôle ciblé, et prouver qu'il n'ouvre qu'une porte
+# Challenge : Accorder un rôle ciblé, et prouver qu'il n'ouvre qu'une porte
 
 Tout le monde se connecte au dépôt avec le compte `admin`, dont le mot de
 passe circule dans un fichier partagé. L'équipe qui livre les bibliothèques
@@ -46,3 +46,9 @@ c'est donc une porte ouverte **et** les autres restées fermées.
   répond `--object must be set when not using --domain`.
 - Pour tester une permission, un `curl -u` avec les identifiants du compte
   limité suffit.
+
+## Valider votre travail
+
+```bash
+dsoxlab check pulp-05-securiser
+```

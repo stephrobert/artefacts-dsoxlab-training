@@ -1,4 +1,4 @@
-# Put Pulp into service, and prove the API answers
+# Challenge: Put Pulp into service, and prove the API answers
 
 Your team pulls its dependencies straight from the public repositories. During
 the last incident, PyPI was unreachable for twenty minutes and no build went
@@ -56,3 +56,9 @@ directories. It queries the instance the way a client would:
 - The CLI reads its configuration from `~/.config/pulp/cli.toml`.
 - Initialisation takes about a minute: as long as the API refuses the
   connection, the container is still starting.
+
+## Check your work
+
+```bash
+dsoxlab check pulp-01-installer
+```

@@ -1,4 +1,4 @@
-# Host a container registry on Nexus, port and realm included
+# Challenge: Host a container registry on Nexus, port and realm included
 
 Your Nexus already serves the team's Python packages. You are asked to host
 the in-house **container images** there too, to stop depending on a public

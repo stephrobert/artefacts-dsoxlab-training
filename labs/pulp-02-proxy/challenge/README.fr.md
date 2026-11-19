@@ -1,4 +1,4 @@
-# Proxyfier PyPI, et prouver que le cache sert quand la source tombe
+# Challenge : Proxyfier PyPI, et prouver que le cache sert quand la source tombe
 
 Votre instance Pulp tourne sur `depot.lab`. Elle ne sert encore rien : c'est
 une coquille vide. On vous demande d'en faire le **proxy PyPI** de l'équipe,
@@ -65,3 +65,9 @@ ensuite.
 - L'adresse de l'index servi par la distribution se termine par `/simple/`.
 - Côté client, `pip install --index-url` suffit : rien à configurer
   globalement.
+
+## Valider votre travail
+
+```bash
+dsoxlab check pulp-02-proxy
+```

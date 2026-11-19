@@ -98,7 +98,7 @@ def test_parite_des_langues() -> None:
     boiteux = []
     for lab in _labs():
         base = lab.parent
-        for nom in ("README", "scenario"):
+        for nom in ("README", "challenge/README"):
             en = base / f"{nom}.md"
             fr = base / f"{nom}.fr.md"
             if en.is_file() != fr.is_file():

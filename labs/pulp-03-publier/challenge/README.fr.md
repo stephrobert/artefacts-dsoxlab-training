@@ -1,4 +1,4 @@
-# Publier son propre paquet, et l'installer depuis une autre machine
+# Challenge : Publier son propre paquet, et l'installer depuis une autre machine
 
 Le dépôt sert maintenant les paquets publics. L'équipe a aussi ses propres
 bibliothèques, qui circulent aujourd'hui par copie de fichiers et par
@@ -42,3 +42,9 @@ réussit prouve que le paquet vient bien de chez vous.
   est dépréciée depuis pulp-cli 0.38.0).
 - Un dépôt `python` accepte aussi bien des paquets synchronisés que des
   paquets téléversés.
+
+## Valider votre travail
+
+```bash
+dsoxlab check pulp-03-publier
+```

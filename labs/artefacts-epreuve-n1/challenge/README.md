@@ -1,4 +1,4 @@
-# The repository nobody documented
+# Challenge: The repository nobody documented
 
 The person who ran `depot.lab` has left the team. The Pulp instance is up,
 and that is about all the good one can say about it.

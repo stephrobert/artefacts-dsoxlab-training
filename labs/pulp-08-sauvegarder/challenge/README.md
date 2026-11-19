@@ -1,4 +1,4 @@
-# Back up a repository, and prove the restore serves
+# Challenge: Back up a repository, and prove the restore serves
 
 Your repository has been running for months. It holds the in-house packages
 nobody knows how to rebuild any more, and the images production deploys. The
