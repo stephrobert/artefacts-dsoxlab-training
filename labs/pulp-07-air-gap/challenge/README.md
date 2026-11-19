@@ -1,4 +1,4 @@
-# Serve with no Internet, and prove the cut is real
+# Challenge: Serve with no Internet, and prove the cut is real
 
 Your repository is going to be deployed in a **closed** network: a trading
 floor, an industrial site, a classified zone. No machine there reaches the
@@ -50,3 +50,9 @@ isolation is discovered on switchover day.
   fail from `depot.lab`.
 - The repository is filled **before** the cut. A sync started afterwards will
   wait in vain.
+
+## Check your work
+
+```bash
+dsoxlab check pulp-07-air-gap
+```

@@ -1,4 +1,4 @@
-# Héberger un registre d'images sur Nexus, port et realm compris
+# Challenge : Héberger un registre d'images sur Nexus, port et realm compris
 
 Votre Nexus sert déjà les paquets Python de l'équipe. On vous demande d'y
 héberger aussi les **images de conteneurs** maison, pour ne plus dépendre

@@ -1,4 +1,4 @@
-# Publish your own package, and install it from another machine
+# Challenge: Publish your own package, and install it from another machine
 
 The repository now serves public packages. The team also has its own
 libraries, which travel today by file copy and email. You are asked to
@@ -41,3 +41,9 @@ proves the package came from you.
   to a repository in one go (`content upload` still exists but is deprecated
   since pulp-cli 0.38.0).
 - A `python` repository accepts uploaded packages as well as synced ones.
+
+## Check your work
+
+```bash
+dsoxlab check pulp-03-publier
+```

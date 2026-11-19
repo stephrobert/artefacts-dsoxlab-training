@@ -1,4 +1,4 @@
-# Mettre Pulp en service, et prouver que l'API répond
+# Challenge : Mettre Pulp en service, et prouver que l'API répond
 
 Votre équipe tire ses dépendances directement des dépôts publics. Au dernier
 incident, PyPI a été injoignable vingt minutes et plus aucun build ne passait.
@@ -56,3 +56,9 @@ répertoires. Elle interroge l'instance comme le ferait un client :
 - La CLI lit sa configuration dans `~/.config/pulp/cli.toml`.
 - L'initialisation prend environ une minute : tant que l'API refuse la
   connexion, le conteneur finit de démarrer.
+
+## Valider votre travail
+
+```bash
+dsoxlab check pulp-01-installer
+```

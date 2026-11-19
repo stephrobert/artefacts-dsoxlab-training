@@ -1,4 +1,4 @@
-# Grant a targeted role, and prove it opens one door only
+# Challenge: Grant a targeted role, and prove it opens one door only
 
 Everyone connects to the repository with the `admin` account, whose password
 travels in a shared file. Yet the team that ships internal libraries needs
@@ -45,3 +45,9 @@ therefore one door open **and** the others still shut.
   CLI answers `--object must be set when not using --domain`.
 - To test a permission, a `curl -u` with the limited account's credentials is
   enough.
+
+## Check your work
+
+```bash
+dsoxlab check pulp-05-securiser
+```

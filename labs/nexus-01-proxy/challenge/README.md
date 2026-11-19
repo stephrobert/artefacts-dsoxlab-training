@@ -1,4 +1,4 @@
-# Proxy PyPI with Nexus, and serve both repositories from one URL
+# Challenge: Proxy PyPI with Nexus, and serve both repositories from one URL
 
 Your team installs Python packages from **PyPI** dozens of times a day, and
 also publishes its own **in-house packages**. You are asked to put a **Nexus

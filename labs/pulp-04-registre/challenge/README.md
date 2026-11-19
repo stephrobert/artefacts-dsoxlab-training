@@ -1,4 +1,4 @@
-# Serve container images, and prove they come from your registry
+# Challenge: Serve container images, and prove they come from your registry
 
 The team's builds pull their base images from Docker Hub. Twice this month,
 the download limit broke the chain in the middle of the day. You are asked to
@@ -45,3 +45,9 @@ configuration. You must declare `TOKEN_SERVER`,
 - The pull-through remote and distribution are created through the **REST
   API**: the CLI does not expose them yet.
 - Over HTTP, `podman` needs `--tls-verify=false`.
+
+## Check your work
+
+```bash
+dsoxlab check pulp-04-registre
+```

@@ -1,4 +1,4 @@
-# Signer une image, et prouver que la vérification refuse une image non signée
+# Challenge : Signer une image, et prouver que la vérification refuse une image non signée
 
 Vos images sont servies par votre registre. Rien ne dit pourtant qu'une image
 tirée aujourd'hui est celle que vous avez poussée hier : un registre
@@ -57,3 +57,9 @@ exactement de la même façon, et vous n'auriez qu'une illusion de contrôle.
   `--allow-http-registry` ; `cosign login`, lui, ne connaît pas cette option.
 - Sans serveur de transparence, ajoutez `--tlog-upload=false` à la signature
   et `--insecure-ignore-tlog=true` à la vérification.
+
+## Valider votre travail
+
+```bash
+dsoxlab check pulp-06-signer
+```

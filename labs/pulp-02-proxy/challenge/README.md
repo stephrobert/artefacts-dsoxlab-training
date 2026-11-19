@@ -1,4 +1,4 @@
-# Proxy PyPI, and prove the cache serves when the source goes down
+# Challenge: Proxy PyPI, and prove the cache serves when the source goes down
 
 Your Pulp instance is running on `depot.lab`. It serves nothing yet: it is an
 empty shell. You are asked to turn it into the team's **PyPI proxy**, so that
@@ -64,3 +64,9 @@ afterwards.
 - The address of the index served by the distribution ends with `/simple/`.
 - On the client side, `pip install --index-url` is enough: nothing to
   configure globally.
+
+## Check your work
+
+```bash
+dsoxlab check pulp-02-proxy
+```

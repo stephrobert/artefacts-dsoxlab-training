@@ -1,4 +1,4 @@
-# Le dépôt que personne ne documentait
+# Challenge : Le dépôt que personne ne documentait
 
 La personne qui tenait `depot.lab` a quitté l'équipe. L'instance Pulp tourne,
 et c'est à peu près tout ce qu'on peut en dire de bien.

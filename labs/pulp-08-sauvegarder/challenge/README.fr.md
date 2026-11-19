@@ -1,4 +1,4 @@
-# Sauvegarder un dépôt, et prouver que la restauration sert
+# Challenge : Sauvegarder un dépôt, et prouver que la restauration sert
 
 Votre dépôt est en service depuis des mois. Il contient les paquets maison
 que plus personne ne sait reconstruire, et les images que la production

@@ -1,4 +1,4 @@
-# Proxyfier PyPI avec Nexus, et servir les deux dépôts sous une seule URL
+# Challenge : Proxyfier PyPI avec Nexus, et servir les deux dépôts sous une seule URL
 
 Votre équipe installe des paquets Python depuis **PyPI** des dizaines de fois
 par jour, et publie aussi ses **paquets maison**. On vous demande de mettre un

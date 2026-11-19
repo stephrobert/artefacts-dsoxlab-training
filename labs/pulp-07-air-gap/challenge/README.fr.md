@@ -1,4 +1,4 @@
-# Servir sans Internet, et prouver que la coupure est réelle
+# Challenge : Servir sans Internet, et prouver que la coupure est réelle
 
 Votre dépôt va être déployé dans un réseau **fermé** : une salle de marché,
 un site industriel, une zone classifiée. Aucune machine n'y joint Internet.
@@ -51,3 +51,9 @@ on découvre l'isolement le jour de la bascule.
   l'extérieur doit échouer depuis `depot.lab`.
 - Le dépôt se remplit **avant** la coupure. Une synchronisation lancée après
   attendra en vain.
+
+## Valider votre travail
+
+```bash
+dsoxlab check pulp-07-air-gap
+```

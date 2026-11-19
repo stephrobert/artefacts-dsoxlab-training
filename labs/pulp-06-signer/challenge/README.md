@@ -1,4 +1,4 @@
-# Sign an image, and prove verification refuses an unsigned one
+# Challenge: Sign an image, and prove verification refuses an unsigned one
 
 Your images are served by your registry. Nothing says, though, that an image
 pulled today is the one you pushed yesterday: a compromised registry, a man
@@ -54,3 +54,9 @@ exactly the same way, and you would have nothing but an illusion of control.
   `cosign login` does not know that option.
 - With no transparency log, add `--tlog-upload=false` to the signature and
   `--insecure-ignore-tlog=true` to the verification.
+
+## Check your work
+
+```bash
+dsoxlab check pulp-06-signer
+```
